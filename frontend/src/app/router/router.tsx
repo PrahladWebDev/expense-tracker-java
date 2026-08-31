@@ -1,7 +1,9 @@
 import { createBrowserRouter, Navigate, Outlet } from 'react-router-dom'
-import { AuthProvider } from '@/app/providers/AuthProvider'
+import { AuthProvider, useAuth } from '@/app/providers/AuthProvider'
+import { ThemeProvider } from '@/app/providers/ThemeProvider'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import Layout from '@/components/Layout'
+import LandingPage from '@/features/marketing/pages/LandingPage'
 import LoginPage from '@/features/auth/pages/LoginPage'
 import RegisterPage from '@/features/auth/pages/RegisterPage'
 import ProfilePage from '@/features/auth/pages/ProfilePage'
@@ -21,20 +23,32 @@ import BudgetsPage from '@/features/budgets/pages/BudgetsPage'
 // AuthProvider must wrap the ENTIRE route tree (including ProtectedRoute,
 // which calls useAuth() to decide whether to redirect to /login), so it's
 // the element on our top-level route, with <Outlet /> rendering whichever
-// child route actually matched the URL.
+// child route actually matched the URL. ThemeProvider sits alongside it
+// for the same reason: both the logged-out LandingPage and the logged-in
+// Layout need the dark-mode toggle.
 function RootLayout() {
   return (
-    <AuthProvider>
-      <Outlet />
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <Outlet />
+      </AuthProvider>
+    </ThemeProvider>
   )
+}
+
+// "/" shows the marketing landing page to signed-out visitors, and sends
+// signed-in users straight to their dashboard instead of making them look
+// at a sign-up pitch for a product they already use.
+function RootRoute() {
+  const { isAuthenticated } = useAuth()
+  return isAuthenticated ? <Navigate to="/dashboard" replace /> : <LandingPage />
 }
 
 export const router = createBrowserRouter([
   {
     element: <RootLayout />,
     children: [
-      { path: '/', element: <Navigate to="/dashboard" replace /> },
+      { path: '/', element: <RootRoute /> },
       { path: '/login', element: <LoginPage /> },
       { path: '/register', element: <RegisterPage /> },
       {
@@ -54,7 +68,7 @@ export const router = createBrowserRouter([
           },
         ],
       },
-      { path: '*', element: <Navigate to="/dashboard" replace /> },
+      { path: '*', element: <Navigate to="/" replace /> },
     ],
   },
 ])
