@@ -5,6 +5,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { useEffect } from 'react'
 import { useCategories } from '@/features/categories/hooks/useCategories'
 import { useCreateExpense, useExpense, useUpdateExpense } from '../hooks/useExpenses'
+import { budgetApi } from '@/features/budgets/api/budgetApi'
 
 const expenseSchema = z.object({
   amount: z.coerce.number().positive('Amount must be positive'),
@@ -45,6 +46,31 @@ export default function ExpenseFormPage() {
     }
   }, [existing, reset])
 
+  // CONCEPT: Post-save budget check (non-blocking warning)
+  // We deliberately do NOT stop the expense from saving - a budget here is
+  // a target to track against, not a hard limit (see BudgetService: nothing
+  // on the backend rejects an over-budget expense). After the expense is
+  // safely saved, we fetch the user's budgets fresh (bypassing the cache
+  // with budgetApi.getAll() directly, since useCreateExpense/useUpdateExpense
+  // just invalidated ['budgets'] - the numbers now include this expense) and
+  // see if it pushed anything over 100%. A budget can be scoped to one
+  // category OR left "Overall" (categoryId === null, i.e. it covers every
+  // category that month) - both need checking.
+  async function checkBudgetOverage(categoryId: number, expenseDate: string): Promise<string[]> {
+    const month = expenseDate.slice(0, 7) // "YYYY-MM-DD" -> "YYYY-MM"
+    try {
+      const budgets = await budgetApi.getAll()
+      return budgets
+        .filter((b) => b.month === month && (b.categoryId === categoryId || b.categoryId === null))
+        .filter((b) => b.percentUsed > 100)
+        .map((b) => `${b.categoryName} budget for ${b.month} is now ${b.percentUsed}% used (₹${b.spent.toFixed(2)} of ₹${b.amount.toFixed(2)}).`)
+    } catch {
+      // A failed budget check should never block navigation after a
+      // successful expense save - just skip the warning silently.
+      return []
+    }
+  }
+
   async function onSubmit(values: ExpenseFormValues) {
     const payload = {
       amount: values.amount,
@@ -57,7 +83,9 @@ export default function ExpenseFormPage() {
     } else {
       await createExpense.mutateAsync(payload)
     }
-    navigate('/expenses')
+
+    const budgetWarnings = await checkBudgetOverage(values.categoryId, values.expenseDate)
+    navigate('/expenses', { state: budgetWarnings.length > 0 ? { budgetWarnings } : undefined })
   }
 
   return (

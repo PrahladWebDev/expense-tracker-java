@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useDeleteExpense, useExpenses } from '../hooks/useExpenses'
 import ExpenseFiltersBar from '../components/ExpenseFiltersBar'
 import type { ExpenseFilters } from '../types/expense.types'
@@ -18,6 +18,21 @@ export default function ExpensesListPage() {
   const { data, isLoading } = useExpenses(filters)
   const deleteExpense = useDeleteExpense()
 
+  // CONCEPT: router state for a one-time, non-blocking notice
+  // ExpenseFormPage checks matching budgets right after saving and, if the
+  // new expense pushed one over 100%, navigates here with
+  // `state: { budgetWarnings: string[] }`. We read it once, render it as a
+  // dismissible banner, then immediately replace history state with none -
+  // otherwise the same warning would reappear every time the user hits
+  // Back, or reloads this page.
+  const location = useLocation()
+  const navigate = useNavigate()
+  const budgetWarnings = (location.state as { budgetWarnings?: string[] } | null)?.budgetWarnings
+
+  function dismissWarnings() {
+    navigate(location.pathname, { replace: true, state: null })
+  }
+
   function handleExport() {
     if (!data || data.items.length === 0) return
     downloadCsv(
@@ -29,6 +44,28 @@ export default function ExpensesListPage() {
 
   return (
     <div className="space-y-4">
+      {budgetWarnings && budgetWarnings.length > 0 && (
+        <div className="rounded-lg border border-amber-200 dark:border-amber-900 bg-amber-50 dark:bg-amber-950/50 p-4">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex gap-2">
+              <span aria-hidden>⚠️</span>
+              <div className="space-y-1">
+                {budgetWarnings.map((msg, i) => (
+                  <p key={i} className="text-sm text-amber-800 dark:text-amber-200">{msg}</p>
+                ))}
+              </div>
+            </div>
+            <button
+              onClick={dismissWarnings}
+              aria-label="Dismiss"
+              className="text-amber-500 hover:text-amber-700 dark:text-amber-400 dark:hover:text-amber-200 shrink-0"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="flex items-center justify-between gap-3">
         <h1 className="text-xl font-semibold text-gray-900 dark:text-white">Expenses</h1>
         <div className="flex items-center gap-2">
