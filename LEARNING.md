@@ -219,6 +219,31 @@ class OrderService {
 
 ---
 
+## 5. Testing, scheduling, and authorization additions
+
+### Unit testing with Mockito (no Spring context)
+**CONCEPT:** `@ExtendWith(MockitoExtension.class)` + `@Mock` + `@InjectMocks` lets you construct a service with fake dependencies and control exactly what they return, without starting a Spring application context at all.
+**WHY it matters here specifically:** this is the direct payoff of constructor injection (see section 2). Because `CategoryService`'s dependencies arrive via its constructor, a test can call `new CategoryService(mockRepo, mockUserRepo)` — or let `@InjectMocks` do that wiring — and the test runs in milliseconds with zero database, zero HTTP server, zero Spring startup cost. Field injection (`@Autowired` on a field) would make this much harder, since there'd be no constructor to hand mocks to.
+**IN OUR PROJECT:** `backend/src/test/java/.../CategoryServiceTest.java` and `AuthServiceTest.java`. The `AuthServiceTest` password test is the one most worth reading closely — it asserts the *saved* user's password is the bcrypt hash, never the plain-text value, which is exactly the property BCrypt is there to guarantee.
+
+### @Scheduled tasks
+**CONCEPT:** `@Scheduled(fixedRate = ...)` on a method tells Spring's built-in scheduler to invoke it automatically on a timer, instead of it being triggered by an incoming HTTP request. Requires `@EnableScheduling` on the main application class to activate the scheduler thread pool at all — without it, `@Scheduled` methods are silently never called.
+**WHY:** some work isn't naturally tied to a user action. Nobody sends a request that means "please clean up old refresh tokens" — it just needs to happen periodically in the background.
+**IN OUR PROJECT:** `auth/scheduled/RefreshTokenCleanupJob.java` runs once every 24 hours and deletes `refresh_tokens` rows that are expired or already revoked.
+**COMMON MISTAKE:** forgetting `@EnableScheduling` — the method compiles fine, the app starts fine, and the job simply never runs, with no error anywhere.
+
+### Path-based vs. resource-level authorization
+**CONCEPT:** Authorization can be enforced at different levels. `SecurityConfig`'s `.requestMatchers("/api/v1/admin/**").hasRole("ADMIN")` is **path-based** — it's checked before the request even reaches a controller. A different technique, method-level security (`@PreAuthorize("hasRole('ADMIN')")` on a controller method), is checked at the method call itself and can express finer-grained rules (e.g. "only if this is also *your own* resource").
+**WHY path-based here:** the admin endpoint's entire *purpose* is "admin-only," with no per-request nuance beyond that — a blanket path rule is simpler and just as correct, and it's easier to see the whole authorization policy in one place (`SecurityConfig`) rather than scattered across annotations on individual methods.
+**IN OUR PROJECT:** `AdminController.listUsers()` has no security annotation on it at all — the protection lives entirely in `SecurityConfig`. Compare this to the *ownership* checks in `ExpenseService`/`CategoryService`/`BudgetService`, which can't be expressed as a URL pattern at all (there's no way to know from the URL alone whether expense #47 belongs to the caller) — those are necessarily checked in application code via `findByIdAndUserId`.
+
+### Fixed-window rate limiting
+**CONCEPT:** Track how many requests a client has made in the current time window (60 seconds, here); once they exceed a threshold, reject further requests with `429 Too Many Requests` until the window resets.
+**WHY on `/auth/**` specifically:** login is the one endpoint where an attacker benefits from unlimited retries (guessing passwords). Rate limiting doesn't stop a determined, distributed attacker, but it meaningfully raises the cost of naive brute-forcing from a single source.
+**IN OUR PROJECT:** `security/RateLimitingFilter.java` — deliberately simple (in-memory `ConcurrentHashMap`, single JVM) so the *concept* is visible without a Redis dependency. The class comment explains exactly why this specific implementation wouldn't be sufficient once you have more than one backend instance running behind a load balancer.
+
+---
+
 ## Common mistakes to watch for
 
 - **Storing money as `double`** instead of `BigDecimal` — looks fine in testing, silently drifts in production.

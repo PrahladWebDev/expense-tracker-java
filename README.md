@@ -5,11 +5,16 @@ A full-stack expense tracker: Spring Boot 3 / Java 21 / MySQL backend, React 19 
 ## Features
 
 - Register / login / logout with JWT access + refresh tokens (refresh token rotation, BCrypt password hashing)
+- Basic rate limiting on `/api/v1/auth/**` (10 requests/minute per IP) to slow down credential brute-forcing
+- A scheduled job that purges expired/revoked refresh tokens daily, so that table doesn't grow unbounded
 - Expenses: create, edit, delete, search, filter (category / date range / amount range), sort, paginate
 - Categories: full CRUD, scoped per-user
 - Budgets: monthly, overall or per-category, with live spend-vs-budget tracking
 - Dashboard: total spend, month-over-month comparison, monthly bar chart, category breakdown pie chart, budget usage bars
+- Profile page: view account details, update full name
+- An admin-only endpoint (`GET /api/v1/admin/users`) that actually exercises role-based authorization — a `USER`-role JWT gets a 403 here, not just a UI that hides a button
 - Every user can only ever see/modify their own data (enforced at the repository query level, not just the UI)
+- A handful of backend unit tests (Mockito, no Spring context) and a frontend unit test suite (Vitest) covering the formatting utilities
 
 ## Stack
 
@@ -104,19 +109,37 @@ DELETE /api/v1/budgets/{id}
 GET    /api/v1/dashboard/summary
 GET    /api/v1/dashboard/monthly?monthsBack=6
 GET    /api/v1/dashboard/categories?from=&to=
+
+GET    /api/v1/users/me
+PUT    /api/v1/users/me
+
+GET    /api/v1/admin/users        (requires Role.ADMIN — see note below)
 ```
 
 Every response is wrapped as `{ success, message, data, timestamp }`.
 
+**Testing the admin endpoint:** no signup flow grants `ADMIN` (registration always forces `Role.USER`, on purpose — self-service admin signup would be a real vulnerability). To try it locally, promote a user by hand:
+```sql
+UPDATE users SET role = 'ADMIN' WHERE email = 'you@example.com';
+```
+Then log in again so the JWT picks up the new role.
+
+## Running the tests
+
+```bash
+cd backend && mvn test
+cd frontend && npm run test
+```
+
 ## What's intentionally left as a next step
 
-This is a solid, working MVP, not a maxed-out enterprise app. A few things called for in the original spec that you may want to add incrementally (each is a good exercise in its own right):
+This is a solid, working MVP, not a maxed-out enterprise app. A few things called for in the original spec are still genuinely thin and worth calling out rather than leaving you to discover them:
 
-- **Tests** — unit tests for services, `@WebMvcTest`/`@DataJpaTest` slices for controllers/repositories, and frontend component/form tests
-- **Role-based authorization beyond the basic USER/ADMIN enum** — there's no admin-only endpoint yet to actually exercise `Role.ADMIN`
-- **Rate limiting / account lockout** on the auth endpoints
-- **Refresh token cleanup job** — expired/revoked rows currently just accumulate in the `refresh_tokens` table
-- **CI** (GitHub Actions running `mvn test` and `npm run build` on push)
+- **Test coverage is a start, not comprehensive** — a couple of Mockito unit tests per side, not `@WebMvcTest`/`@DataJpaTest` slices, controller tests, or frontend component/form tests. Enough to demonstrate the pattern and catch regressions in the riskiest logic (password hashing, ownership checks), not enough to call "tested."
+- **Rate limiting is single-instance, in-memory** — fine for one backend process, but resets on restart and won't coordinate across multiple instances behind a load balancer. A real deployment with horizontal scaling needs a shared store (Redis is the standard choice) instead of `RateLimitingFilter`'s in-memory map.
+- **No account lockout** after repeated failed logins — rate limiting slows brute-forcing, but there's no per-account lockout/backoff on top of it.
+- **CI** (GitHub Actions running `mvn test` and `npm run build` on push) — not set up.
+- **`frontend/src/services/`** — created per the original folder-structure spec, still empty. All API logic ended up living in each feature's own `api/` folder plus the shared `lib/axios.ts`, which covers the same need; the empty folder is left as-is rather than populated with a synthetic file just to fill it.
 
 ## Learning mode
 
