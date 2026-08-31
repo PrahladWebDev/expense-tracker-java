@@ -1,0 +1,26 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: expense-tracker
+  datasource:
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:expense_tracker}?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:root}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.MySQLDialect
+
+app:
+  jwt:
+    secret: ${JWT_SECRET:this-is-a-dev-only-secret-change-me-in-prod-please-32bytes}
+    access-token-expiration-ms: ${JWT_ACCESS_EXPIRATION:900000}
+    refresh-token-expiration-ms: ${JWT_REFRESH_EXPIRATION:604800000}
+  cors:
+    allowed-origins: ${CORS_ORIGINS:http://localhost:5173}
