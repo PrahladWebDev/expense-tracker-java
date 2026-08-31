@@ -1,0 +1,55 @@
+# CONCEPT: Docker & Docker Compose
+# Docker packages an app + everything it needs (JRE, libraries, OS bits)
+# into an isolated, reproducible "container" - it runs the same way on your
+# laptop, a teammate's laptop, and a production server.
+# Docker Compose lets us define MULTIPLE containers (mysql, backend,
+# frontend) plus how they network together and start up, in one YAML file,
+# instead of running long `docker run` commands by hand for each one.
+#
+# NETWORKING: containers on the same Compose network can reach each other
+# by SERVICE NAME as a hostname - that's why the backend's DB_HOST is
+# "mysql" (the service name below), not "localhost".
+services:
+  mysql:
+    image: mysql:8.0
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-root}
+      MYSQL_DATABASE: expense_tracker
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_PASSWORD:-root}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_NAME: expense_tracker
+      DB_USERNAME: root
+      DB_PASSWORD: ${DB_PASSWORD:-root}
+      JWT_SECRET: ${JWT_SECRET:-change-this-in-production-to-something-long-and-random}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173}
+    ports:
+      - "8080:8080"
+
+  frontend:
+    build: ./frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "5173:80"
+
+volumes:
+  mysql_data:
