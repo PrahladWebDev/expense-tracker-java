@@ -25,6 +25,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
  *   - where our custom JWT filter sits in the filter chain
  *   - that we use STATELESS sessions (no server-side session/cookie - the
  *     JWT itself carries the identity on every request)
+ *   - what response an unauthenticated request gets (see FIX below)
  *
  * CONCEPT: BCrypt
  * BCryptPasswordEncoder hashes passwords with a computationally expensive,
@@ -34,6 +35,14 @@ import org.springframework.web.cors.CorsConfigurationSource;
  * WHY: storing plain-text passwords means a single database leak exposes
  * every user's real password. BCrypt makes brute-forcing computationally
  * expensive even if the hash is stolen.
+ *
+ * FIX: without an explicit exceptionHandling().authenticationEntryPoint(...),
+ * Spring Security falls back to Http403ForbiddenEntryPoint whenever form
+ * login and HTTP Basic are both disabled - which they are here, since this
+ * is a stateless JWT API. That silently turned every "no valid token"
+ * request into a 403 instead of a 401, which broke the frontend's
+ * refresh-on-401 logic for expired access tokens. Registering
+ * JwtAuthenticationEntryPoint fixes that.
  */
 @Configuration
 @EnableWebSecurity
@@ -44,6 +53,7 @@ public class SecurityConfig {
     private final RateLimitingFilter rateLimitingFilter;
     private final UserDetailsService userDetailsService;
     private final CorsConfigurationSource corsConfigurationSource;
+    private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -63,6 +73,11 @@ public class SecurityConfig {
                 // STATELESS: Spring Security will never create or use an HttpSession.
                 // Every request must carry its own valid JWT.
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                // Unauthenticated request to a protected endpoint -> 401 JSON body,
+                // not Spring Security's default 403. Authorization failures for a
+                // recognized user (e.g. non-admin hitting /admin/**) still fall
+                // through to AccessDeniedException -> 403, handled separately.
+                .exceptionHandling(exceptions -> exceptions.authenticationEntryPoint(jwtAuthenticationEntryPoint))
                 .authenticationProvider(authenticationProvider())
                 // Insert our custom filter BEFORE Spring's built-in username/password filter,
                 // since we're authenticating via JWT, not a login form.

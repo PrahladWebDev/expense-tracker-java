@@ -1,6 +1,7 @@
 package com.expense.tracker.security;
 
 import com.expense.tracker.auth.security.CustomUserDetailsService;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -33,9 +34,21 @@ import java.io.IOException;
  *      "this request is authenticated as this user" by populating the
  *      SecurityContextHolder
  *   4. Pass control to the next filter in the chain
- * If there's no token, or it's invalid, we simply do nothing here -
- * SecurityConfig later decides whether the target endpoint requires auth,
- * and rejects unauthenticated requests to protected endpoints with a 401/403.
+ * If there's no token, or it's invalid/expired, we simply do nothing here -
+ * SecurityConfig's authorizeHttpRequests rule + JwtAuthenticationEntryPoint
+ * later decide what response an unauthenticated request to a protected
+ * endpoint gets (a clean 401 JSON body), instead of a raw exception.
+ *
+ * FIX: jwtService.extractUsername() parses the token, and the JJWT library
+ * throws (ExpiredJwtException, MalformedJwtException, SignatureException -
+ * all subclasses of JwtException) the moment it touches an expired or
+ * tampered token. A Filter runs BEFORE Spring MVC's DispatcherServlet, so
+ * @RestControllerAdvice (GlobalExceptionHandler) can never catch an
+ * exception thrown here - it would otherwise escape as an unhandled 500.
+ * Catching JwtException (and IllegalArgumentException, thrown for a
+ * malformed/empty token string) here and simply continuing the chain
+ * un-authenticated turns "expired token" into an ordinary, predictable
+ * 401 response instead of a crash.
  */
 @Component
 @RequiredArgsConstructor // Lombok generates a constructor for all `final` fields = constructor injection
@@ -59,19 +72,29 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         final String jwt = authHeader.substring(7); // strip "Bearer "
-        final String userEmail = jwtService.extractUsername(jwt);
 
-        // Only authenticate if we have an email AND the request isn't already authenticated
-        if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails userDetails = userDetailsService.loadUserByUsername(userEmail);
+        try {
+            final String userEmail = jwtService.extractUsername(jwt);
 
-            if (jwtService.isTokenValid(jwt, userDetails)) {
-                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                        userDetails, null, userDetails.getAuthorities()
-                );
-                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authToken);
+            // Only authenticate if we have an email AND the request isn't already authenticated
+            if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                UserDetails userDetails = userDetailsService.loadUserByUsername(userEmail);
+
+                if (jwtService.isTokenValid(jwt, userDetails)) {
+                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                            userDetails, null, userDetails.getAuthorities()
+                    );
+                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                }
             }
+        } catch (JwtException | IllegalArgumentException ex) {
+            // Expired, malformed, or tampered token: leave the request
+            // unauthenticated instead of throwing. SecurityConfig's
+            // authorizeHttpRequests + JwtAuthenticationEntryPoint turn this
+            // into a clean 401, which the frontend's axios interceptor
+            // knows how to recover from via /auth/refresh.
+            SecurityContextHolder.clearContext();
         }
 
         filterChain.doFilter(request, response);
