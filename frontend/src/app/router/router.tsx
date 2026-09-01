@@ -12,6 +12,8 @@ import ExpensesListPage from '@/features/expenses/pages/ExpensesListPage'
 import ExpenseFormPage from '@/features/expenses/pages/ExpenseFormPage'
 import CategoriesPage from '@/features/categories/pages/CategoriesPage'
 import BudgetsPage from '@/features/budgets/pages/BudgetsPage'
+import GroupsListPage from '@/features/groups/pages/GroupsListPage'
+import GroupDetailPage from '@/features/groups/pages/GroupDetailPage'
 
 // CONCEPT: React Router (data router API)
 // createBrowserRouter builds a route tree matched against the URL, using
@@ -63,6 +65,8 @@ export const router = createBrowserRouter([
               { path: '/expenses/:id/edit', element: <ExpenseFormPage /> },
               { path: '/categories', element: <CategoriesPage /> },
               { path: '/budgets', element: <BudgetsPage /> },
+              { path: '/groups', element: <GroupsListPage /> },
+              { path: '/groups/:id', element: <GroupDetailPage /> },
               { path: '/profile', element: <ProfilePage /> },
             ],
           },

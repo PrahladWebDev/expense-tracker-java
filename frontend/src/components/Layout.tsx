@@ -8,6 +8,7 @@ const navItems = [
   { to: '/expenses', label: 'Expenses', icon: '🧾' },
   { to: '/categories', label: 'Categories', icon: '🏷️' },
   { to: '/budgets', label: 'Budgets', icon: '🎯' },
+  { to: '/groups', label: 'Groups', icon: '👥' },
 ]
 
 // CONCEPT: Responsive layout, one component
@@ -126,7 +127,7 @@ export default function Layout() {
       </main>
 
       {/* Mobile bottom tab bar */}
-      <nav className="md:hidden fixed bottom-0 inset-x-0 z-20 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 grid grid-cols-4">
+      <nav className="md:hidden fixed bottom-0 inset-x-0 z-20 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 grid grid-cols-5">
         {navItems.map((item) => (
           <NavLink
             key={item.to}
