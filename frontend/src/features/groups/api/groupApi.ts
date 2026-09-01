@@ -33,6 +33,14 @@ export const groupApi = {
   remove: async (groupId: number) => {
     await api.delete(`/groups/${groupId}`)
   },
+  close: async (groupId: number) => {
+    const { data } = await api.post<ApiEnvelope<Group>>(`/groups/${groupId}/close`)
+    return data.data
+  },
+  reopen: async (groupId: number) => {
+    const { data } = await api.post<ApiEnvelope<Group>>(`/groups/${groupId}/reopen`)
+    return data.data
+  },
   addMember: async (groupId: number, payload: AddMemberPayload) => {
     const { data } = await api.post<ApiEnvelope<Group>>(`/groups/${groupId}/members`, payload)
     return data.data

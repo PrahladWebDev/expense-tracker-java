@@ -9,6 +9,7 @@ import com.expense.tracker.group.dto.GroupResponse;
 import com.expense.tracker.group.entity.ExpenseGroup;
 import com.expense.tracker.group.entity.GroupMember;
 import com.expense.tracker.group.entity.GroupMemberRole;
+import com.expense.tracker.group.entity.GroupStatus;
 import com.expense.tracker.group.mapper.GroupMapper;
 import com.expense.tracker.group.repository.ExpenseGroupRepository;
 import com.expense.tracker.group.repository.GroupExpenseRepository;
@@ -20,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.List;
 
 /**
@@ -79,6 +81,7 @@ public class GroupService {
         User requester = getUser(userEmail);
         ExpenseGroup group = getGroupEntity(groupId);
         requireMembership(groupId, requester.getId());
+        requireOpen(group);
 
         User toAdd = userRepository.findByEmail(request.email())
                 .orElseThrow(() -> new ResourceNotFoundException("No user is registered with that email"));
@@ -102,6 +105,7 @@ public class GroupService {
         User requester = getUser(userEmail);
         ExpenseGroup group = getGroupEntity(groupId);
         GroupMember requesterMembership = requireMembership(groupId, requester.getId());
+        requireOpen(group);
 
         if (requesterMembership.getRole() != GroupMemberRole.OWNER) {
             throw new ForbiddenException("Only the group owner can remove members");
@@ -140,6 +144,55 @@ public class GroupService {
             throw new ForbiddenException("Cannot delete a group that still has expenses recorded");
         }
         groupRepository.deleteById(groupId);
+    }
+
+    /**
+     * Closes a group: it becomes read-only. Members can still view all
+     * expenses, balances and settlement history, but no new expenses,
+     * members or settlements can be added, and existing membership can't
+     * be changed until the group is reopened. Only the OWNER can do this.
+     */
+    @Transactional
+    public GroupResponse closeGroup(String userEmail, Long groupId) {
+        User requester = getUser(userEmail);
+        ExpenseGroup group = getGroupEntity(groupId);
+        GroupMember requesterMembership = requireMembership(groupId, requester.getId());
+        if (requesterMembership.getRole() != GroupMemberRole.OWNER) {
+            throw new ForbiddenException("Only the group owner can close this group");
+        }
+        if (group.getStatus() == GroupStatus.CLOSED) {
+            throw new ForbiddenException("This group is already closed");
+        }
+
+        group.setStatus(GroupStatus.CLOSED);
+        group.setClosedAt(Instant.now());
+        groupRepository.save(group);
+
+        return mapper.toResponse(group, memberRepository.findByGroupId(groupId));
+    }
+
+    /** Reopens a previously closed group, restoring normal read/write access. */
+    @Transactional
+    public GroupResponse reopenGroup(String userEmail, Long groupId) {
+        User requester = getUser(userEmail);
+        ExpenseGroup group = getGroupEntity(groupId);
+        GroupMember requesterMembership = requireMembership(groupId, requester.getId());
+        if (requesterMembership.getRole() != GroupMemberRole.OWNER) {
+            throw new ForbiddenException("Only the group owner can reopen this group");
+        }
+
+        group.setStatus(GroupStatus.OPEN);
+        group.setClosedAt(null);
+        groupRepository.save(group);
+
+        return mapper.toResponse(group, memberRepository.findByGroupId(groupId));
+    }
+
+    /** Guards any mutation (add/remove member, add expense, settle up) against a closed group. */
+    void requireOpen(ExpenseGroup group) {
+        if (group.getStatus() == GroupStatus.CLOSED) {
+            throw new ForbiddenException("This group is closed - reopen it to make changes");
+        }
     }
 
     GroupMember requireMembership(Long groupId, Long userId) {

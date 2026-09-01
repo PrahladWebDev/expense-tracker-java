@@ -10,5 +10,7 @@ public record GroupResponse(
         Long createdByUserId,
         String createdByName,
         Instant createdAt,
+        String status,
+        Instant closedAt,
         List<GroupMemberResponse> members
 ) {}

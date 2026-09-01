@@ -48,6 +48,20 @@ public class GroupController {
         return ResponseEntity.ok(ApiResponse.success(null, "Group deleted"));
     }
 
+    /** Closes the group: read-only from here on (no new expenses/members/settlements) until reopened. */
+    @PostMapping("/{groupId}/close")
+    public ResponseEntity<ApiResponse<GroupResponse>> close(Authentication authentication, @PathVariable Long groupId) {
+        GroupResponse response = groupService.closeGroup(authentication.getName(), groupId);
+        return ResponseEntity.ok(ApiResponse.success(response, "Group closed"));
+    }
+
+    /** Reopens a closed group, restoring normal read/write access. */
+    @PostMapping("/{groupId}/reopen")
+    public ResponseEntity<ApiResponse<GroupResponse>> reopen(Authentication authentication, @PathVariable Long groupId) {
+        GroupResponse response = groupService.reopenGroup(authentication.getName(), groupId);
+        return ResponseEntity.ok(ApiResponse.success(response, "Group reopened"));
+    }
+
     @PostMapping("/{groupId}/members")
     public ResponseEntity<ApiResponse<GroupResponse>> addMember(
             Authentication authentication, @PathVariable Long groupId, @Valid @RequestBody AddMemberRequest request) {

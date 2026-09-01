@@ -50,6 +50,7 @@ public class GroupExpenseService {
     public GroupExpenseResponse addExpense(String userEmail, Long groupId, GroupExpenseRequest request) {
         requireMembership(userEmail, groupId);
         ExpenseGroup group = groupService.getGroupEntity(groupId);
+        groupService.requireOpen(group);
 
         User paidBy = memberRepository.findByGroupIdAndUserId(groupId, request.paidByUserId())
                 .orElseThrow(() -> new ResourceNotFoundException("paidByUserId is not a member of this group"))
@@ -91,6 +92,7 @@ public class GroupExpenseService {
     public void deleteExpense(String userEmail, Long groupId, Long expenseId) {
         User requester = requireMembership(userEmail, groupId);
         GroupExpense expense = getExpenseEntity(groupId, expenseId);
+        groupService.requireOpen(expense.getGroup());
 
         boolean isOwner = memberRepository.findByGroupIdAndUserId(groupId, requester.getId())
                 .map(m -> m.getRole() == GroupMemberRole.OWNER)

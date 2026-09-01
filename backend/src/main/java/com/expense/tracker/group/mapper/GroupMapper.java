@@ -29,6 +29,8 @@ public class GroupMapper {
                 g.getCreatedBy().getId(),
                 g.getCreatedBy().getFullName(),
                 g.getCreatedAt(),
+                g.getStatus().name(),
+                g.getClosedAt(),
                 members.stream().map(this::toMemberResponse).toList()
         );
     }

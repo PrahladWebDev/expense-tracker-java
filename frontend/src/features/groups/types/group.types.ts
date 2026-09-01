@@ -6,6 +6,8 @@ export interface GroupMember {
   joinedAt: string
 }
 
+export type GroupStatus = 'OPEN' | 'CLOSED'
+
 export interface Group {
   id: number
   name: string
@@ -13,6 +15,8 @@ export interface Group {
   createdByUserId: number
   createdByName: string
   createdAt: string
+  status: GroupStatus
+  closedAt: string | null
   members: GroupMember[]
 }
 

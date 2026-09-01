@@ -31,6 +31,28 @@ export function useDeleteGroup() {
   })
 }
 
+export function useCloseGroup(groupId: number) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: () => groupApi.close(groupId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['groups', groupId] })
+      queryClient.invalidateQueries({ queryKey: ['groups'] })
+    },
+  })
+}
+
+export function useReopenGroup(groupId: number) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: () => groupApi.reopen(groupId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['groups', groupId] })
+      queryClient.invalidateQueries({ queryKey: ['groups'] })
+    },
+  })
+}
+
 export function useAddMember(groupId: number) {
   const queryClient = useQueryClient()
   return useMutation({

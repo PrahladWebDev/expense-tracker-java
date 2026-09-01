@@ -46,6 +46,18 @@ public class ExpenseGroup {
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
 
+    /**
+     * OPEN groups accept new expenses/members/settlements. CLOSED groups
+     * are read-only - see GroupStatus for details. Defaults to OPEN.
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    @Builder.Default
+    private GroupStatus status = GroupStatus.OPEN;
+
+    /** When the group was closed; null while the group is OPEN. */
+    private Instant closedAt;
+
     @OneToMany(mappedBy = "group", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<GroupMember> members = new ArrayList<>();
@@ -53,5 +65,8 @@ public class ExpenseGroup {
     @PrePersist
     protected void onCreate() {
         this.createdAt = Instant.now();
+        if (this.status == null) {
+            this.status = GroupStatus.OPEN;
+        }
     }
 }

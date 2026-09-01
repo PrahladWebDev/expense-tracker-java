@@ -7,10 +7,12 @@ import AddGroupExpenseForm from '../components/AddGroupExpenseForm'
 import SettleUpPanel from '../components/SettleUpPanel'
 import {
   useAddMember,
+  useCloseGroup,
   useDeleteGroup,
   useGroup,
   useGroupBalances,
   useGroupExpenses,
+  useReopenGroup,
   useRemoveGroupExpense,
   useRemoveMember,
   useSettlements,
@@ -35,6 +37,8 @@ export default function GroupDetailPage() {
   const removeMember = useRemoveMember(groupId)
   const deleteGroup = useDeleteGroup()
   const removeExpense = useRemoveGroupExpense(groupId)
+  const closeGroup = useCloseGroup(groupId)
+  const reopenGroup = useReopenGroup(groupId)
 
   const [memberEmail, setMemberEmail] = useState('')
   const [memberError, setMemberError] = useState<string | null>(null)
@@ -47,6 +51,7 @@ export default function GroupDetailPage() {
   }
 
   const isOwner = group.createdByUserId === user?.id
+  const isClosed = group.status === 'CLOSED'
   const balanceByUserId = new Map((balances || []).map((b) => [b.userId, b]))
 
   async function onAddMember(e: React.FormEvent) {
@@ -90,11 +95,36 @@ export default function GroupDetailPage() {
     }
   }
 
+  async function onCloseGroup() {
+    if (!confirm('Close this group? It becomes read-only - no new expenses, members or settlements until you reopen it.')) return
+    try {
+      await closeGroup.mutateAsync()
+      setShowAddExpense(false)
+    } catch (err: any) {
+      alert(err?.response?.data?.message || 'Could not close group')
+    }
+  }
+
+  async function onReopenGroup() {
+    try {
+      await reopenGroup.mutateAsync()
+    } catch (err: any) {
+      alert(err?.response?.data?.message || 'Could not reopen group')
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div>
-          <h1 className="text-xl font-semibold text-gray-900">{group.name}</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-xl font-semibold text-gray-900">{group.name}</h1>
+            {isClosed && (
+              <span className="text-xs font-medium text-amber-700 bg-amber-100 rounded-full px-2 py-0.5">
+                Closed
+              </span>
+            )}
+          </div>
           {group.description && <p className="text-sm text-gray-500 mt-0.5">{group.description}</p>}
         </div>
         <div className="flex items-center gap-2">
@@ -105,6 +135,24 @@ export default function GroupDetailPage() {
           >
             {downloadingReport ? 'Preparing…' : '📄 Group PDF report'}
           </button>
+          {isOwner && !isClosed && (
+            <button
+              onClick={onCloseGroup}
+              disabled={closeGroup.isPending}
+              className="text-sm rounded-md border border-amber-300 text-amber-700 px-3 py-1.5 hover:bg-amber-50 disabled:opacity-60"
+            >
+              {closeGroup.isPending ? 'Closing…' : 'Close group'}
+            </button>
+          )}
+          {isOwner && isClosed && (
+            <button
+              onClick={onReopenGroup}
+              disabled={reopenGroup.isPending}
+              className="text-sm rounded-md border border-brand-300 text-brand-700 px-3 py-1.5 hover:bg-brand-50 disabled:opacity-60"
+            >
+              {reopenGroup.isPending ? 'Reopening…' : 'Reopen group'}
+            </button>
+          )}
           {isOwner && (
             <button
               onClick={onDeleteGroup}
@@ -115,6 +163,13 @@ export default function GroupDetailPage() {
           )}
         </div>
       </div>
+
+      {isClosed && (
+        <div className="bg-amber-50 border border-amber-200 text-amber-800 text-sm rounded-lg px-4 py-2">
+          This group is closed. You can still view all expenses, balances and settlement history, but nothing new
+          can be added until it's reopened.
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Members + balances */}
@@ -148,7 +203,7 @@ export default function GroupDetailPage() {
                       >
                         {downloadingStatementFor === m.userId ? '…' : 'Statement PDF'}
                       </button>
-                      {isOwner && m.role !== 'OWNER' && (
+                      {isOwner && m.role !== 'OWNER' && !isClosed && (
                         <button
                           onClick={() => removeMember.mutate(m.userId)}
                           className="text-xs text-red-600 hover:underline"
@@ -163,26 +218,28 @@ export default function GroupDetailPage() {
             </ul>
 
             {memberError && <p className="text-sm text-red-600 mb-2">{memberError}</p>}
-            <form onSubmit={onAddMember} className="flex gap-2">
-              <input
-                type="email"
-                value={memberEmail}
-                onChange={(e) => setMemberEmail(e.target.value)}
-                placeholder="Add member by email"
-                required
-                className="flex-1 rounded-md border border-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
-              />
-              <button
-                type="submit"
-                disabled={addMember.isPending}
-                className="bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium rounded-md px-3 disabled:opacity-60"
-              >
-                Add
-              </button>
-            </form>
+            {!isClosed && (
+              <form onSubmit={onAddMember} className="flex gap-2">
+                <input
+                  type="email"
+                  value={memberEmail}
+                  onChange={(e) => setMemberEmail(e.target.value)}
+                  placeholder="Add member by email"
+                  required
+                  className="flex-1 rounded-md border border-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                />
+                <button
+                  type="submit"
+                  disabled={addMember.isPending}
+                  className="bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium rounded-md px-3 disabled:opacity-60"
+                >
+                  Add
+                </button>
+              </form>
+            )}
           </div>
 
-          <SettleUpPanel groupId={groupId} members={group.members} />
+          {!isClosed && <SettleUpPanel groupId={groupId} members={group.members} />}
 
           <div className="bg-white border border-gray-200 rounded-xl p-5">
             <h2 className="font-semibold text-gray-900 mb-3">Settlement history</h2>
@@ -208,15 +265,17 @@ export default function GroupDetailPage() {
           <div className="bg-white border border-gray-200 rounded-xl p-5">
             <div className="flex items-center justify-between mb-4">
               <h2 className="font-semibold text-gray-900">Group expenses</h2>
-              <button
-                onClick={() => setShowAddExpense((o) => !o)}
-                className="text-sm bg-brand-600 hover:bg-brand-700 text-white font-medium rounded-md px-3 py-1.5"
-              >
-                {showAddExpense ? 'Cancel' : '+ Add expense'}
-              </button>
+              {!isClosed && (
+                <button
+                  onClick={() => setShowAddExpense((o) => !o)}
+                  className="text-sm bg-brand-600 hover:bg-brand-700 text-white font-medium rounded-md px-3 py-1.5"
+                >
+                  {showAddExpense ? 'Cancel' : '+ Add expense'}
+                </button>
+              )}
             </div>
 
-            {showAddExpense && (
+            {showAddExpense && !isClosed && (
               <div className="mb-5 border border-gray-200 rounded-lg p-4">
                 <AddGroupExpenseForm
                   groupId={groupId}
@@ -240,12 +299,14 @@ export default function GroupDetailPage() {
                       </div>
                       <div className="text-right">
                         <p className="font-semibold text-gray-900">{formatCurrency(e.amount)}</p>
-                        <button
-                          onClick={() => removeExpense.mutate(e.id)}
-                          className="text-xs text-red-600 hover:underline"
-                        >
-                          Delete
-                        </button>
+                        {!isClosed && (
+                          <button
+                            onClick={() => removeExpense.mutate(e.id)}
+                            className="text-xs text-red-600 hover:underline"
+                          >
+                            Delete
+                          </button>
+                        )}
                       </div>
                     </div>
                     <p className="text-xs text-gray-400 mt-2">

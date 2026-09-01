@@ -48,6 +48,7 @@ public class SettlementService {
     public SettlementResponse recordSettlement(String userEmail, Long groupId, SettlementRequest request) {
         requireMembership(userEmail, groupId);
         ExpenseGroup group = groupService.getGroupEntity(groupId);
+        groupService.requireOpen(group);
 
         groupService.requireMembership(groupId, request.fromUserId());
         groupService.requireMembership(groupId, request.toUserId());
