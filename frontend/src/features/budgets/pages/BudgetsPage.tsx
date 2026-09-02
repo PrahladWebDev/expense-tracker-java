@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useCategories } from '@/features/categories/hooks/useCategories'
 import { useBudgets, useCreateBudget, useDeleteBudget } from '../hooks/useBudgets'
 import { formatCurrency } from '@/utils/format'
@@ -8,6 +9,7 @@ function currentMonth() {
 }
 
 export default function BudgetsPage() {
+  const { t } = useTranslation()
   const { data: budgets, isLoading } = useBudgets()
   const { data: categories } = useCategories()
   const createBudget = useCreateBudget()
@@ -29,7 +31,7 @@ export default function BudgetsPage() {
       })
       setAmount('')
     } catch (err: any) {
-      setError(err?.response?.data?.message || 'Something went wrong')
+      setError(err?.response?.data?.message || t('common.somethingWrong'))
     }
   }
 
@@ -37,11 +39,11 @@ export default function BudgetsPage() {
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
       <div className="md:col-span-1">
         <div className="bg-white border border-gray-200 rounded-xl p-5">
-          <h2 className="font-semibold text-gray-900 mb-4">New budget</h2>
+          <h2 className="font-semibold text-gray-900 mb-4">{t('budgets.newBudget')}</h2>
           {error && <p className="text-sm text-red-600 mb-3">{error}</p>}
           <form onSubmit={onSubmit} className="space-y-3">
             <div>
-              <label className="block text-sm text-gray-700 mb-1">Amount</label>
+              <label className="block text-sm text-gray-700 mb-1">{t('expenses.amount')}</label>
               <input
                 type="number"
                 step="0.01"
@@ -52,7 +54,7 @@ export default function BudgetsPage() {
               />
             </div>
             <div>
-              <label className="block text-sm text-gray-700 mb-1">Month</label>
+              <label className="block text-sm text-gray-700 mb-1">{t('budgets.month')}</label>
               <input
                 type="month"
                 value={month}
@@ -62,13 +64,13 @@ export default function BudgetsPage() {
               />
             </div>
             <div>
-              <label className="block text-sm text-gray-700 mb-1">Category (optional)</label>
+              <label className="block text-sm text-gray-700 mb-1">{t('budgets.categoryOptional')}</label>
               <select
                 value={categoryId}
                 onChange={(e) => setCategoryId(e.target.value)}
                 className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
               >
-                <option value="">Overall (all categories)</option>
+                <option value="">{t('budgets.overall')}</option>
                 {categories?.map((c) => (
                   <option key={c.id} value={c.id}>{c.name}</option>
                 ))}
@@ -78,7 +80,7 @@ export default function BudgetsPage() {
               type="submit"
               className="w-full bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium rounded-md py-2"
             >
-              Add budget
+              {t('budgets.addBudget')}
             </button>
           </form>
         </div>
@@ -86,7 +88,7 @@ export default function BudgetsPage() {
 
       <div className="md:col-span-2 space-y-3">
         {isLoading ? (
-          <p className="text-sm text-gray-500">Loading budgets…</p>
+          <p className="text-sm text-gray-500">{t('budgets.loading')}</p>
         ) : budgets && budgets.length > 0 ? (
           budgets.map((budget) => {
             const overBudget = budget.percentUsed > 100
@@ -103,19 +105,19 @@ export default function BudgetsPage() {
                       {formatCurrency(budget.spent)} / {formatCurrency(budget.amount)}
                     </p>
                     <button onClick={() => deleteBudget.mutate(budget.id)} className="text-xs text-red-600 hover:underline">
-                      Delete
+                      {t('common.delete')}
                     </button>
                   </div>
                 </div>
                 <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
                   <div className={`h-full ${barColor}`} style={{ width: `${Math.min(budget.percentUsed, 100)}%` }} />
                 </div>
-                <p className="text-xs text-gray-500 mt-1">{budget.percentUsed}% used</p>
+                <p className="text-xs text-gray-500 mt-1">{t('budgets.percentUsed', { percent: budget.percentUsed })}</p>
               </div>
             )
           })
         ) : (
-          <p className="text-sm text-gray-500">No budgets set yet.</p>
+          <p className="text-sm text-gray-500">{t('budgets.noBudgetsSet')}</p>
         )}
       </div>
     </div>

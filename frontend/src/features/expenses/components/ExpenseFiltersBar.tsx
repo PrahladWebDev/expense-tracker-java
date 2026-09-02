@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useCategories } from '@/features/categories/hooks/useCategories'
 import type { ExpenseFilters } from '../types/expense.types'
 
@@ -11,6 +12,7 @@ const inputClass =
   'rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500'
 
 export default function ExpenseFiltersBar({ filters, onChange }: Props) {
+  const { t } = useTranslation()
   const { data: categories } = useCategories()
   // Filters take real estate on small screens, so they start collapsed
   // there and open on demand instead of pushing the expense list down.
@@ -29,14 +31,14 @@ export default function ExpenseFiltersBar({ filters, onChange }: Props) {
         className="sm:hidden w-full flex items-center justify-between text-sm font-medium text-gray-700 dark:text-gray-200"
       >
         <span>
-          Filters {activeCount > 0 && <span className="text-brand-600 dark:text-brand-100">({activeCount})</span>}
+          {t('expenses.filters')} {activeCount > 0 && <span className="text-brand-600 dark:text-brand-100">({activeCount})</span>}
         </span>
         <span aria-hidden>{expanded ? '▲' : '▼'}</span>
       </button>
 
       <div className={`grid grid-cols-2 md:grid-cols-6 gap-3 ${expanded ? 'mt-3' : 'hidden'} sm:mt-0 sm:grid`}>
         <input
-          placeholder="Search description…"
+          placeholder={t('expenses.searchPlaceholder')}
           value={filters.search || ''}
           onChange={(e) => update({ search: e.target.value })}
           className={`col-span-2 ${inputClass}`}
@@ -46,7 +48,7 @@ export default function ExpenseFiltersBar({ filters, onChange }: Props) {
           onChange={(e) => update({ categoryId: e.target.value ? Number(e.target.value) : undefined })}
           className={inputClass}
         >
-          <option value="">All categories</option>
+          <option value="">{t('expenses.allCategories')}</option>
           {categories?.map((c) => (
             <option key={c.id} value={c.id}>{c.name}</option>
           ))}
@@ -71,10 +73,10 @@ export default function ExpenseFiltersBar({ filters, onChange }: Props) {
           }}
           className={inputClass}
         >
-          <option value="expenseDate:desc">Date (newest)</option>
-          <option value="expenseDate:asc">Date (oldest)</option>
-          <option value="amount:desc">Amount (high-low)</option>
-          <option value="amount:asc">Amount (low-high)</option>
+          <option value="expenseDate:desc">{t('expenses.sortNewest')}</option>
+          <option value="expenseDate:asc">{t('expenses.sortOldest')}</option>
+          <option value="amount:desc">{t('expenses.sortAmountHigh')}</option>
+          <option value="amount:asc">{t('expenses.sortAmountLow')}</option>
         </select>
 
         {activeCount > 0 && (
@@ -82,7 +84,7 @@ export default function ExpenseFiltersBar({ filters, onChange }: Props) {
             onClick={() => onChange({ ...filters, search: undefined, categoryId: undefined, from: undefined, to: undefined, page: 0 })}
             className="col-span-2 md:col-span-1 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-100 underline text-left md:text-center"
           >
-            Clear filters
+            {t('expenses.clearFilters')}
           </button>
         )}
       </div>

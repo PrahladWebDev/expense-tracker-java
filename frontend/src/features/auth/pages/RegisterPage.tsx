@@ -3,6 +3,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/app/providers/AuthProvider'
 
 const registerSchema = z.object({
@@ -14,6 +15,7 @@ const registerSchema = z.object({
 type RegisterFormValues = z.infer<typeof registerSchema>
 
 export default function RegisterPage() {
+  const { t } = useTranslation()
   const { register: registerUser } = useAuth()
   const navigate = useNavigate()
   const [serverError, setServerError] = useState<string | null>(null)
@@ -37,8 +39,8 @@ export default function RegisterPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <div className="w-full max-w-sm bg-white rounded-xl shadow-sm border border-gray-200 p-8">
-        <h1 className="text-2xl font-semibold text-gray-900 mb-1">Create your account</h1>
-        <p className="text-sm text-gray-500 mb-6">Start tracking your expenses in minutes</p>
+        <h1 className="text-2xl font-semibold text-gray-900 mb-1">{t('auth.createAccount')}</h1>
+        <p className="text-sm text-gray-500 mb-6">{t('auth.registerSubtitle')}</p>
 
         {serverError && (
           <div className="mb-4 text-sm text-red-700 bg-red-50 border border-red-200 rounded-md px-3 py-2">
@@ -48,7 +50,7 @@ export default function RegisterPage() {
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Full name</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t('auth.fullName')}</label>
             <input
               {...register('fullName')}
               className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
@@ -58,7 +60,7 @@ export default function RegisterPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t('auth.email')}</label>
             <input
               type="email"
               {...register('email')}
@@ -69,7 +71,7 @@ export default function RegisterPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t('auth.password')}</label>
             <input
               type="password"
               {...register('password')}
@@ -84,14 +86,14 @@ export default function RegisterPage() {
             disabled={isSubmitting}
             className="w-full bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium rounded-md py-2 transition disabled:opacity-60"
           >
-            {isSubmitting ? 'Creating account…' : 'Create account'}
+            {isSubmitting ? t('auth.creatingAccount') : t('auth.createAccountButton')}
           </button>
         </form>
 
         <p className="text-sm text-gray-500 mt-6 text-center">
-          Already have an account?{' '}
+          {t('auth.alreadyHaveAccount')}{' '}
           <Link to="/login" className="text-brand-600 font-medium hover:underline">
-            Sign in
+            {t('auth.signInLink')}
           </Link>
         </p>
       </div>

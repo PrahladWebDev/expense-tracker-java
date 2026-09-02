@@ -1,9 +1,11 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/app/providers/AuthProvider'
 import { useCreateGroup, useGroups } from '../hooks/useGroups'
 
 export default function GroupsListPage() {
+  const { t } = useTranslation()
   const { user } = useAuth()
   const { data: groups, isLoading } = useGroups()
   const createGroup = useCreateGroup()
@@ -20,7 +22,7 @@ export default function GroupsListPage() {
       setName('')
       setDescription('')
     } catch (err: any) {
-      setError(err?.response?.data?.message || 'Something went wrong')
+      setError(err?.response?.data?.message || t('common.somethingWrong'))
     }
   }
 
@@ -28,22 +30,22 @@ export default function GroupsListPage() {
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
       <div className="md:col-span-1">
         <div className="bg-white border border-gray-200 rounded-xl p-5">
-          <h2 className="font-semibold text-gray-900 mb-4">New group</h2>
+          <h2 className="font-semibold text-gray-900 mb-4">{t('groupsList.newGroup')}</h2>
           {error && <p className="text-sm text-red-600 mb-3">{error}</p>}
           <form onSubmit={onSubmit} className="space-y-3">
             <div>
-              <label className="block text-sm text-gray-700 mb-1">Group name</label>
+              <label className="block text-sm text-gray-700 mb-1">{t('groupsList.groupName')}</label>
               <input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
                 maxLength={120}
-                placeholder="e.g. Goa Trip, Flatmates"
+                placeholder={t('groupsList.groupNamePlaceholder')}
                 className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
               />
             </div>
             <div>
-              <label className="block text-sm text-gray-700 mb-1">Description (optional)</label>
+              <label className="block text-sm text-gray-700 mb-1">{t('groupsList.descriptionOptional')}</label>
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
@@ -57,7 +59,7 @@ export default function GroupsListPage() {
               disabled={createGroup.isPending}
               className="w-full bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium rounded-md py-2 disabled:opacity-60"
             >
-              Create group
+              {t('groupsList.createGroup')}
             </button>
           </form>
         </div>
@@ -65,7 +67,7 @@ export default function GroupsListPage() {
 
       <div className="md:col-span-2 space-y-3">
         {isLoading ? (
-          <p className="text-sm text-gray-500">Loading groups…</p>
+          <p className="text-sm text-gray-500">{t('groupsList.loadingGroups')}</p>
         ) : groups && groups.length > 0 ? (
           groups.map((group) => (
             <Link
@@ -79,9 +81,9 @@ export default function GroupsListPage() {
                   {group.description && <p className="text-xs text-gray-500 mt-0.5">{group.description}</p>}
                 </div>
                 <div className="text-right">
-                  <p className="text-xs text-gray-500">{group.members.length} member{group.members.length === 1 ? '' : 's'}</p>
+                  <p className="text-xs text-gray-500">{t('groupsList.membersCount', { count: group.members.length })}</p>
                   {group.createdByUserId === user?.id && (
-                    <span className="text-xs text-brand-600 font-medium">Owner</span>
+                    <span className="text-xs text-brand-600 font-medium">{t('settlement.owner')}</span>
                   )}
                 </div>
               </div>
@@ -89,7 +91,7 @@ export default function GroupsListPage() {
           ))
         ) : (
           <p className="text-sm text-gray-500">
-            No groups yet. Create one to start splitting expenses with friends, roommates, or a trip crew.
+            {t('groupsList.noGroups')}
           </p>
         )}
       </div>

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useDeleteExpense, useExpenses } from '../hooks/useExpenses'
 import ExpenseFiltersBar from '../components/ExpenseFiltersBar'
 import type { ExpenseFilters } from '../types/expense.types'
@@ -14,6 +15,7 @@ const DEFAULT_FILTERS: ExpenseFilters = {
 }
 
 export default function ExpensesListPage() {
+  const { t } = useTranslation()
   const [filters, setFilters] = useState<ExpenseFilters>(DEFAULT_FILTERS)
   const { data, isLoading } = useExpenses(filters)
   const deleteExpense = useDeleteExpense()
@@ -67,20 +69,20 @@ export default function ExpensesListPage() {
       )}
 
       <div className="flex items-center justify-between gap-3">
-        <h1 className="text-xl font-semibold text-gray-900 dark:text-white">Expenses</h1>
+        <h1 className="text-xl font-semibold text-gray-900 dark:text-white">{t('expenses.title')}</h1>
         <div className="flex items-center gap-2">
           <button
             onClick={handleExport}
             disabled={!data || data.items.length === 0}
             className="hidden sm:inline-flex items-center gap-1.5 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 text-sm font-medium rounded-md px-3 py-2 disabled:opacity-40 disabled:cursor-not-allowed transition"
           >
-            ⬇ Export CSV
+            ⬇ {t('expenses.exportCsv')}
           </button>
           <Link
             to="/expenses/new"
             className="hidden sm:inline-flex bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium rounded-md px-4 py-2 transition"
           >
-            + Add expense
+            + {t('expenses.addExpense')}
           </Link>
         </div>
       </div>
@@ -92,23 +94,23 @@ export default function ExpensesListPage() {
           onClick={handleExport}
           className="sm:hidden w-full flex items-center justify-center gap-1.5 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-200 text-sm font-medium rounded-md px-3 py-2"
         >
-          ⬇ Export CSV
+          ⬇ {t('expenses.exportCsv')}
         </button>
       )}
 
       <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden">
         {isLoading ? (
-          <p className="p-6 text-sm text-gray-500 dark:text-gray-400">Loading expenses…</p>
+          <p className="p-6 text-sm text-gray-500 dark:text-gray-400">{t('expenses.loading')}</p>
         ) : data && data.items.length > 0 ? (
           <>
             {/* Desktop table (hidden on small screens) */}
             <table className="w-full text-sm hidden sm:table">
               <thead className="bg-gray-50 dark:bg-gray-800/60 text-gray-500 dark:text-gray-400 text-left">
                 <tr>
-                  <th className="px-5 py-3 font-medium">Date</th>
-                  <th className="px-5 py-3 font-medium">Description</th>
-                  <th className="px-5 py-3 font-medium">Category</th>
-                  <th className="px-5 py-3 font-medium text-right">Amount</th>
+                  <th className="px-5 py-3 font-medium">{t('expenses.date')}</th>
+                  <th className="px-5 py-3 font-medium">{t('expenses.description')}</th>
+                  <th className="px-5 py-3 font-medium">{t('expenses.category')}</th>
+                  <th className="px-5 py-3 font-medium text-right">{t('expenses.amount')}</th>
                   <th className="px-5 py-3"></th>
                 </tr>
               </thead>
@@ -130,13 +132,13 @@ export default function ExpensesListPage() {
                     </td>
                     <td className="px-5 py-3 text-right whitespace-nowrap">
                       <Link to={`/expenses/${expense.id}/edit`} className="text-brand-600 dark:text-brand-100 hover:underline text-xs mr-3">
-                        Edit
+                        {t('common.edit')}
                       </Link>
                       <button
                         onClick={() => deleteExpense.mutate(expense.id)}
                         className="text-red-600 dark:text-red-400 hover:underline text-xs"
                       >
-                        Delete
+                        {t('common.delete')}
                       </button>
                     </td>
                   </tr>
@@ -151,7 +153,7 @@ export default function ExpensesListPage() {
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <p className="text-gray-900 dark:text-white font-medium truncate">
-                        {expense.description || 'Untitled expense'}
+                        {expense.description || t('expenses.untitled')}
                       </p>
                       <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{expense.expenseDate}</p>
                       <span
@@ -167,13 +169,13 @@ export default function ExpensesListPage() {
                   </div>
                   <div className="flex gap-4 mt-3">
                     <Link to={`/expenses/${expense.id}/edit`} className="text-brand-600 dark:text-brand-100 text-xs font-medium">
-                      Edit
+                      {t('common.edit')}
                     </Link>
                     <button
                       onClick={() => deleteExpense.mutate(expense.id)}
                       className="text-red-600 dark:text-red-400 text-xs font-medium"
                     >
-                      Delete
+                      {t('common.delete')}
                     </button>
                   </div>
                 </li>
@@ -182,7 +184,7 @@ export default function ExpensesListPage() {
 
             <div className="flex items-center justify-between px-5 py-3 border-t border-gray-100 dark:border-gray-800 text-sm text-gray-500 dark:text-gray-400">
               <span>
-                Page {data.page + 1} of {data.totalPages} · {data.totalItems} total
+                {t('expenses.page', { current: data.page + 1, total: data.totalPages, items: data.totalItems })}
               </span>
               <div className="flex gap-2">
                 <button
@@ -190,20 +192,20 @@ export default function ExpensesListPage() {
                   onClick={() => setFilters((f) => ({ ...f, page: f.page - 1 }))}
                   className="px-3 py-1 rounded-md border border-gray-300 dark:border-gray-700 disabled:opacity-40"
                 >
-                  Previous
+                  {t('expenses.previous')}
                 </button>
                 <button
                   disabled={data.last}
                   onClick={() => setFilters((f) => ({ ...f, page: f.page + 1 }))}
                   className="px-3 py-1 rounded-md border border-gray-300 dark:border-gray-700 disabled:opacity-40"
                 >
-                  Next
+                  {t('expenses.next')}
                 </button>
               </div>
             </div>
           </>
         ) : (
-          <p className="p-6 text-sm text-gray-500 dark:text-gray-400">No expenses match these filters.</p>
+          <p className="p-6 text-sm text-gray-500 dark:text-gray-400">{t('expenses.noExpenses')}</p>
         )}
       </div>
     </div>

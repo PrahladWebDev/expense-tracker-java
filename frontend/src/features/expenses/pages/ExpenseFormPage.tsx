@@ -3,6 +3,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useCategories } from '@/features/categories/hooks/useCategories'
 import { useCreateExpense, useExpense, useUpdateExpense } from '../hooks/useExpenses'
 import { budgetApi } from '@/features/budgets/api/budgetApi'
@@ -17,6 +18,7 @@ const expenseSchema = z.object({
 type ExpenseFormValues = z.infer<typeof expenseSchema>
 
 export default function ExpenseFormPage() {
+  const { t } = useTranslation()
   const { id } = useParams()
   const isEdit = !!id
   const navigate = useNavigate()
@@ -90,11 +92,11 @@ export default function ExpenseFormPage() {
 
   return (
     <div className="max-w-md">
-      <h1 className="text-xl font-semibold text-gray-900 mb-6">{isEdit ? 'Edit expense' : 'Add expense'}</h1>
+      <h1 className="text-xl font-semibold text-gray-900 mb-6">{isEdit ? t('expenses.editExpense') : t('expenses.addExpense')}</h1>
 
       <form onSubmit={handleSubmit(onSubmit)} className="bg-white border border-gray-200 rounded-xl p-6 space-y-4">
         <div>
-          <label className="block text-sm text-gray-700 mb-1">Amount</label>
+          <label className="block text-sm text-gray-700 mb-1">{t('expenses.amount')}</label>
           <input
             type="number"
             step="0.01"
@@ -106,12 +108,12 @@ export default function ExpenseFormPage() {
         </div>
 
         <div>
-          <label className="block text-sm text-gray-700 mb-1">Category</label>
+          <label className="block text-sm text-gray-700 mb-1">{t('expenses.category')}</label>
           <select
             {...register('categoryId')}
             className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
           >
-            <option value="">Select a category</option>
+            <option value="">{t('expenses.selectCategory')}</option>
             {categories?.map((c) => (
               <option key={c.id} value={c.id}>{c.name}</option>
             ))}
@@ -120,7 +122,7 @@ export default function ExpenseFormPage() {
         </div>
 
         <div>
-          <label className="block text-sm text-gray-700 mb-1">Date</label>
+          <label className="block text-sm text-gray-700 mb-1">{t('expenses.date')}</label>
           <input
             type="date"
             {...register('expenseDate')}
@@ -131,12 +133,12 @@ export default function ExpenseFormPage() {
         </div>
 
         <div>
-          <label className="block text-sm text-gray-700 mb-1">Description (optional)</label>
+          <label className="block text-sm text-gray-700 mb-1">{t('expenses.descriptionOptional')}</label>
           <input
             {...register('description')}
             maxLength={255}
             className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
-            placeholder="e.g. Weekly groceries"
+            placeholder={t('expenses.descriptionPlaceholder')}
           />
         </div>
 
@@ -146,14 +148,14 @@ export default function ExpenseFormPage() {
             disabled={isSubmitting}
             className="flex-1 bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium rounded-md py-2 disabled:opacity-60"
           >
-            {isEdit ? 'Save changes' : 'Add expense'}
+            {isEdit ? t('expenses.saveChanges') : t('expenses.addExpense')}
           </button>
           <button
             type="button"
             onClick={() => navigate('/expenses')}
             className="px-4 text-sm text-gray-500 hover:text-gray-800"
           >
-            Cancel
+            {t('common.cancel')}
           </button>
         </div>
       </form>

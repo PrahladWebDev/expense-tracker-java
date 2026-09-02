@@ -1,4 +1,5 @@
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts'
+import { useTranslation } from 'react-i18next'
 import { useSummary, useMonthlySpending, useCategoryBreakdown } from '../hooks/useDashboard'
 import { useBudgets } from '@/features/budgets/hooks/useBudgets'
 import { formatCurrencyCompact as formatCurrency, formatPercent } from '@/utils/format'
@@ -14,47 +15,48 @@ function StatCard({ label, value, sub }: { label: string; value: string; sub?: s
 }
 
 export default function DashboardPage() {
+  const { t } = useTranslation()
   const { data: summary } = useSummary()
   const { data: monthly } = useMonthlySpending(6)
   const { data: categories } = useCategoryBreakdown()
   const { data: budgets } = useBudgets()
 
-  const changeLabel = summary ? `${formatPercent(summary.changePercent)} vs last month` : undefined
+  const changeLabel = summary ? t('dashboard.vsLastMonth', { percent: formatPercent(summary.changePercent) }) : undefined
 
   return (
     <div className="space-y-6">
-      <h1 className="text-xl font-semibold text-gray-900">Dashboard</h1>
+      <h1 className="text-xl font-semibold text-gray-900">{t('dashboard.title')}</h1>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <StatCard label="Total spending (all time)" value={summary ? formatCurrency(summary.totalAllTime) : '…'} />
+        <StatCard label={t('dashboard.totalAllTime')} value={summary ? formatCurrency(summary.totalAllTime) : '…'} />
         <StatCard
-          label="This month"
+          label={t('dashboard.thisMonth')}
           value={summary ? formatCurrency(summary.currentMonth) : '…'}
           sub={changeLabel}
         />
-        <StatCard label="Last month" value={summary ? formatCurrency(summary.previousMonth) : '…'} />
+        <StatCard label={t('dashboard.lastMonth')} value={summary ? formatCurrency(summary.previousMonth) : '…'} />
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <StatCard
-          label="Your share of group expenses (all time)"
+          label={t('dashboard.groupShareAllTime')}
           value={summary ? formatCurrency(summary.groupSpendingAllTime) : '…'}
-          sub="Your split only, not what you paid up front"
+          sub={t('dashboard.groupShareNote')}
         />
         <StatCard
-          label="Your share of group expenses (this month)"
+          label={t('dashboard.groupShareThisMonth')}
           value={summary ? formatCurrency(summary.groupSpendingCurrentMonth) : '…'}
         />
         <StatCard
-          label="Combined spending (this month)"
+          label={t('dashboard.combinedThisMonth')}
           value={summary ? formatCurrency(summary.combinedCurrentMonth) : '…'}
-          sub="Personal + your group share"
+          sub={t('dashboard.combinedNote')}
         />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white border border-gray-200 rounded-xl p-5">
-          <h2 className="font-semibold text-gray-900 mb-4">Monthly spending</h2>
+          <h2 className="font-semibold text-gray-900 mb-4">{t('dashboard.monthlySpending')}</h2>
           <ResponsiveContainer width="100%" height={260}>
             <BarChart data={monthly || []}>
               <XAxis dataKey="month" tick={{ fontSize: 12 }} />
@@ -66,7 +68,7 @@ export default function DashboardPage() {
         </div>
 
         <div className="bg-white border border-gray-200 rounded-xl p-5">
-          <h2 className="font-semibold text-gray-900 mb-4">Spending by category (this month)</h2>
+          <h2 className="font-semibold text-gray-900 mb-4">{t('dashboard.categorySpending')}</h2>
           {categories && categories.length > 0 ? (
             <ResponsiveContainer width="100%" height={260}>
               <PieChart>
@@ -80,13 +82,13 @@ export default function DashboardPage() {
               </PieChart>
             </ResponsiveContainer>
           ) : (
-            <p className="text-sm text-gray-500 py-16 text-center">No spending recorded this month yet.</p>
+            <p className="text-sm text-gray-500 py-16 text-center">{t('dashboard.noSpendingThisMonth')}</p>
           )}
         </div>
       </div>
 
       <div className="bg-white border border-gray-200 rounded-xl p-5">
-        <h2 className="font-semibold text-gray-900 mb-4">Budget usage</h2>
+        <h2 className="font-semibold text-gray-900 mb-4">{t('dashboard.budgetUsage')}</h2>
         {budgets && budgets.length > 0 ? (
           <div className="space-y-3">
             {budgets.slice(0, 5).map((budget) => (
@@ -105,7 +107,7 @@ export default function DashboardPage() {
             ))}
           </div>
         ) : (
-          <p className="text-sm text-gray-500">No budgets set yet. Head to the Budgets page to create one.</p>
+          <p className="text-sm text-gray-500">{t('dashboard.noBudgets')}</p>
         )}
       </div>
     </div>

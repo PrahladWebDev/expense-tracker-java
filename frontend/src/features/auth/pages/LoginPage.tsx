@@ -3,6 +3,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/app/providers/AuthProvider'
 
 // CONCEPT: Zod
@@ -25,6 +26,7 @@ const loginSchema = z.object({
 type LoginFormValues = z.infer<typeof loginSchema>
 
 export default function LoginPage() {
+  const { t } = useTranslation()
   const { login } = useAuth()
   const navigate = useNavigate()
   const [serverError, setServerError] = useState<string | null>(null)
@@ -48,8 +50,8 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <div className="w-full max-w-sm bg-white rounded-xl shadow-sm border border-gray-200 p-8">
-        <h1 className="text-2xl font-semibold text-gray-900 mb-1">Welcome back</h1>
-        <p className="text-sm text-gray-500 mb-6">Sign in to your Expense Tracker account</p>
+        <h1 className="text-2xl font-semibold text-gray-900 mb-1">{t('auth.welcomeBack')}</h1>
+        <p className="text-sm text-gray-500 mb-6">{t('auth.signInSubtitle')}</p>
 
         {serverError && (
           <div className="mb-4 text-sm text-red-700 bg-red-50 border border-red-200 rounded-md px-3 py-2">
@@ -59,7 +61,7 @@ export default function LoginPage() {
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t('auth.email')}</label>
             <input
               type="email"
               {...register('email')}
@@ -70,7 +72,7 @@ export default function LoginPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t('auth.password')}</label>
             <input
               type="password"
               {...register('password')}
@@ -85,14 +87,14 @@ export default function LoginPage() {
             disabled={isSubmitting}
             className="w-full bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium rounded-md py-2 transition disabled:opacity-60"
           >
-            {isSubmitting ? 'Signing in…' : 'Sign in'}
+            {isSubmitting ? t('auth.signingIn') : t('auth.signIn')}
           </button>
         </form>
 
         <p className="text-sm text-gray-500 mt-6 text-center">
-          Don't have an account?{' '}
+          {t('auth.noAccount')}{' '}
           <Link to="/register" className="text-brand-600 font-medium hover:underline">
-            Register
+            {t('auth.registerLink')}
           </Link>
         </p>
       </div>
