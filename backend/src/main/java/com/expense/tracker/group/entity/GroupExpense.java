@@ -65,6 +65,25 @@ public class GroupExpense {
 
     private String receiptContentType;
 
+    /**
+     * Soft delete: a deleted group expense is never physically removed.
+     * It stays visible in the group's expense list (struck through, with
+     * who deleted it) for a clear audit trail, but is excluded from every
+     * balance/total calculation as if it never happened - see
+     * GroupExpenseRepository.findByGroupIdAndDeletedFalse... and the
+     * "AND s.groupExpense.deleted = false" clauses in
+     * GroupExpenseShareRepository.
+     */
+    @Builder.Default
+    @Column(nullable = false)
+    private boolean deleted = false;
+
+    private Instant deletedAt;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "deleted_by")
+    private User deletedBy;
+
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
 

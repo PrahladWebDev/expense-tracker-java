@@ -57,7 +57,7 @@ public class BalanceService {
             net.put(uid, BigDecimal.ZERO);
         }
 
-        List<GroupExpense> expenses = groupExpenseRepository.findByGroupIdOrderByExpenseDateDescCreatedAtDesc(groupId);
+        List<GroupExpense> expenses = groupExpenseRepository.findByGroupIdAndDeletedFalseOrderByExpenseDateDescCreatedAtDesc(groupId);
         for (GroupExpense e : expenses) {
             Long payerId = e.getPaidBy().getId();
             totalPaid.merge(payerId, e.getAmount(), BigDecimal::add);

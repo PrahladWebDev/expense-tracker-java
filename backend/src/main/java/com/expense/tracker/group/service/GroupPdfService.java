@@ -61,7 +61,7 @@ public class GroupPdfService {
         ExpenseGroup group = groupService.getGroupEntity(groupId);
         groupService.requireMembership(groupId, requester.getId());
 
-        List<GroupExpenseResponse> expenses = groupExpenseService.listExpenses(userEmail, groupId);
+        List<GroupExpenseResponse> expenses = groupExpenseService.listActiveExpenses(userEmail, groupId);
         List<MemberBalanceResponse> balances = balanceService.computeBalances(groupId);
         List<SettlementResponse> settlements = settlementService.listSettlements(userEmail, groupId);
 

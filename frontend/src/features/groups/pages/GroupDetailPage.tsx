@@ -370,9 +370,14 @@ export default function GroupDetailPage() {
             {expenses && expenses.length > 0 ? (
               <ul className="space-y-3">
                 {expenses.map((e) => (
-                  <li key={e.id} className="border border-gray-100 rounded-lg p-3">
+                  <li
+                    key={e.id}
+                    className={`border rounded-lg p-3 ${
+                      e.deleted ? 'border-gray-100 bg-gray-50' : 'border-gray-100'
+                    }`}
+                  >
                     <div className="flex items-start justify-between">
-                      <div>
+                      <div className={e.deleted ? 'line-through decoration-red-400 opacity-60' : undefined}>
                         <p className="font-medium text-gray-900">{e.description || 'Group expense'}</p>
                         <p className="text-xs text-gray-500">
                           {e.expenseDate} · paid by {e.paidByName} · {e.splitType.toLowerCase()} split
@@ -380,8 +385,14 @@ export default function GroupDetailPage() {
                         </p>
                       </div>
                       <div className="text-right">
-                        <p className="font-semibold text-gray-900">{formatCurrency(e.amount)}</p>
-                        {!isClosed && (
+                        <p
+                          className={`font-semibold ${
+                            e.deleted ? 'text-gray-400 line-through decoration-red-400' : 'text-gray-900'
+                          }`}
+                        >
+                          {formatCurrency(e.amount)}
+                        </p>
+                        {!isClosed && !e.deleted && (
                           <button
                             onClick={() => removeExpense.mutate(e.id)}
                             className="text-xs text-red-600 hover:underline"
@@ -391,16 +402,24 @@ export default function GroupDetailPage() {
                         )}
                       </div>
                     </div>
-                    <p className="text-xs text-gray-400 mt-2">
-                      {e.shares.map((s) => `${s.fullName}: ${formatCurrency(s.shareAmount)}`).join(' · ')}
-                    </p>
-                    <button
-                      onClick={() => setExpandedExpenseId((cur) => (cur === e.id ? null : e.id))}
-                      className="text-xs text-brand-600 hover:underline mt-2"
-                    >
-                      {expandedExpenseId === e.id ? 'Hide notes' : 'Notes & receipt'}
-                    </button>
-                    {expandedExpenseId === e.id && (
+                    {e.deleted ? (
+                      <p className="text-xs text-red-500 mt-2">
+                        Deleted by {e.deletedByName ?? 'a member'} · excluded from totals and balances
+                      </p>
+                    ) : (
+                      <p className="text-xs text-gray-400 mt-2">
+                        {e.shares.map((s) => `${s.fullName}: ${formatCurrency(s.shareAmount)}`).join(' · ')}
+                      </p>
+                    )}
+                    {!e.deleted && (
+                      <button
+                        onClick={() => setExpandedExpenseId((cur) => (cur === e.id ? null : e.id))}
+                        className="text-xs text-brand-600 hover:underline mt-2"
+                      >
+                        {expandedExpenseId === e.id ? 'Hide notes' : 'Notes & receipt'}
+                      </button>
+                    )}
+                    {expandedExpenseId === e.id && !e.deleted && (
                       <ExpenseComments
                         groupId={groupId}
                         expense={e}

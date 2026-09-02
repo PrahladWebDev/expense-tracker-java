@@ -22,7 +22,10 @@ public class GroupExpenseMapper {
                         .toList(),
                 e.getReceiptStoredName() != null,
                 e.getReceiptOriginalName(),
-                e.getCreatedAt()
+                e.getCreatedAt(),
+                e.isDeleted(),
+                e.getDeletedBy() != null ? e.getDeletedBy().getFullName() : null,
+                e.getDeletedAt()
         );
     }
 }

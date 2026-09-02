@@ -55,6 +55,9 @@ export interface GroupExpense {
   hasReceipt: boolean
   receiptOriginalName: string | null
   createdAt: string
+  deleted: boolean
+  deletedByName: string | null
+  deletedAt: string | null
 }
 
 export interface GroupExpensePayload {

@@ -15,14 +15,16 @@ public interface GroupExpenseShareRepository extends JpaRepository<GroupExpenseS
      * Summed across every group the user belongs to, all time.
      */
     @org.springframework.data.jpa.repository.Query(
-        "SELECT COALESCE(SUM(s.shareAmount), 0) FROM GroupExpenseShare s WHERE s.user.id = :userId"
+        "SELECT COALESCE(SUM(s.shareAmount), 0) FROM GroupExpenseShare s " +
+        "WHERE s.user.id = :userId AND s.groupExpense.deleted = false"
     )
     java.math.BigDecimal sumShareAmountByUserId(@org.springframework.data.repository.query.Param("userId") Long userId);
 
     /** Same as above, restricted to expenses dated within [start, end]. */
     @org.springframework.data.jpa.repository.Query(
         "SELECT COALESCE(SUM(s.shareAmount), 0) FROM GroupExpenseShare s " +
-        "WHERE s.user.id = :userId AND s.groupExpense.expenseDate BETWEEN :start AND :end"
+        "WHERE s.user.id = :userId AND s.groupExpense.deleted = false " +
+        "AND s.groupExpense.expenseDate BETWEEN :start AND :end"
     )
     java.math.BigDecimal sumShareAmountByUserIdAndDateRange(
             @org.springframework.data.repository.query.Param("userId") Long userId,
@@ -36,7 +38,8 @@ public interface GroupExpenseShareRepository extends JpaRepository<GroupExpenseS
      */
     @org.springframework.data.jpa.repository.Query(
         "SELECT FUNCTION('DATE_FORMAT', s.groupExpense.expenseDate, '%Y-%m') as ym, COALESCE(SUM(s.shareAmount), 0) " +
-        "FROM GroupExpenseShare s WHERE s.user.id = :userId AND s.groupExpense.expenseDate BETWEEN :start AND :end " +
+        "FROM GroupExpenseShare s WHERE s.user.id = :userId AND s.groupExpense.deleted = false " +
+        "AND s.groupExpense.expenseDate BETWEEN :start AND :end " +
         "GROUP BY ym ORDER BY ym"
     )
     List<Object[]> sumShareAmountByMonthForUserInRange(

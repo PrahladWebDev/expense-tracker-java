@@ -16,5 +16,8 @@ public record GroupExpenseResponse(
         List<ExpenseShareResponse> shares,
         boolean hasReceipt,
         String receiptOriginalName,
-        Instant createdAt
+        Instant createdAt,
+        boolean deleted,
+        String deletedByName,
+        Instant deletedAt
 ) {}

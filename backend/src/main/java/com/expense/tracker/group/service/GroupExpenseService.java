@@ -46,6 +46,14 @@ public class GroupExpenseService {
                 .toList();
     }
 
+    /** Same as listExpenses but excludes soft-deleted ones - used for CSV/PDF exports, which are financial records. */
+    public List<GroupExpenseResponse> listActiveExpenses(String userEmail, Long groupId) {
+        requireMembership(userEmail, groupId);
+        return groupExpenseRepository.findByGroupIdAndDeletedFalseOrderByExpenseDateDescCreatedAtDesc(groupId).stream()
+                .map(mapper::toResponse)
+                .toList();
+    }
+
     public GroupExpenseResponse getExpense(String userEmail, Long groupId, Long expenseId) {
         requireMembership(userEmail, groupId);
         return mapper.toResponse(getExpenseEntity(groupId, expenseId));
@@ -101,11 +109,22 @@ public class GroupExpenseService {
         return mapper.toResponse(saved);
     }
 
+    /**
+     * Soft delete: the expense is never removed from the group. It stays
+     * visible (struck through) in the list with who deleted it, but is
+     * excluded from balances and dashboard totals as if it never happened -
+     * see BalanceService and GroupExpenseShareRepository's "deleted = false"
+     * guards.
+     */
     @Transactional
     public void deleteExpense(String userEmail, Long groupId, Long expenseId) {
         User requester = requireMembership(userEmail, groupId);
         GroupExpense expense = getExpenseEntity(groupId, expenseId);
         groupService.requireOpen(expense.getGroup());
+
+        if (expense.isDeleted()) {
+            return; // already deleted, nothing to do
+        }
 
         boolean isOwner = memberRepository.findByGroupIdAndUserId(groupId, requester.getId())
                 .map(m -> m.getRole() == GroupMemberRole.OWNER)
@@ -115,15 +134,14 @@ public class GroupExpenseService {
             throw new ForbiddenException("Only the person who paid, or the group owner, can delete this expense");
         }
 
-        if (expense.getReceiptStoredName() != null) {
-            fileStorageService.delete(expense.getReceiptStoredName());
-        }
+        expense.setDeleted(true);
+        expense.setDeletedAt(java.time.Instant.now());
+        expense.setDeletedBy(requester);
+        groupExpenseRepository.save(expense);
 
         activityService.log(expense.getGroup(), requester, GroupActivityType.EXPENSE_DELETED,
                 requester.getFullName() + " deleted the ₹" + expense.getAmount() + " expense \""
                         + (expense.getDescription() != null ? expense.getDescription() : "group expense") + "\"");
-
-        groupExpenseRepository.delete(expense);
     }
 
     /** Only a member can attach a receipt photo; any existing receipt on the expense is replaced. */
