@@ -169,14 +169,14 @@ export default function GroupDetailPage() {
           <button
             onClick={onDownloadGroupReport}
             disabled={downloadingReport}
-            className="text-sm rounded-md border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-60"
+            className="text-sm rounded-md border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 px-3 py-1.5 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-60"
           >
             {downloadingReport ? 'Preparing…' : '📄 Group PDF report'}
           </button>
           <button
             onClick={onDownloadCsv}
             disabled={downloadingCsv}
-            className="text-sm rounded-md border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-60"
+            className="text-sm rounded-md border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 px-3 py-1.5 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-60"
           >
             {downloadingCsv ? 'Preparing…' : '📊 Export CSV'}
           </button>
