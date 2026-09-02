@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { formatCurrency } from '@/utils/format'
 import type { GroupMember } from '../types/group.types'
 import { useRecordSettlement, useSettlementSuggestions } from '../hooks/useGroups'
@@ -14,6 +15,7 @@ interface Props {
  * record that a suggested - or any manual - payment actually happened.
  */
 export default function SettleUpPanel({ groupId, members }: Props) {
+  const { t } = useTranslation()
   const { data: suggestions, isLoading } = useSettlementSuggestions(groupId)
   const recordSettlement = useRecordSettlement(groupId)
 
@@ -54,9 +56,9 @@ export default function SettleUpPanel({ groupId, members }: Props) {
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-5">
       <div className="flex items-center justify-between mb-3">
-        <h2 className="font-semibold text-gray-900">Settle up</h2>
+        <h2 className="font-semibold text-gray-900">{t('settlement.settleUp')}</h2>
         <button onClick={() => setManualOpen((o) => !o)} className="text-xs text-brand-600 hover:underline">
-          {manualOpen ? 'Cancel' : 'Record a payment'}
+          {manualOpen ? t('common.cancel') : t('settlement.recordPayment')}
         </button>
       </div>
 
@@ -106,19 +108,19 @@ export default function SettleUpPanel({ groupId, members }: Props) {
             disabled={recordSettlement.isPending}
             className="w-full bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium rounded-md py-1.5 disabled:opacity-60"
           >
-            Save payment
+            {t('settlement.savePayment')}
           </button>
         </form>
       )}
 
       {isLoading ? (
-        <p className="text-sm text-gray-500">Calculating…</p>
+        <p className="text-sm text-gray-500">{t('settlement.calculating')}</p>
       ) : suggestions && suggestions.length > 0 ? (
         <ul className="space-y-2">
           {suggestions.map((s, idx) => (
             <li key={idx} className="flex items-center justify-between text-sm bg-gray-50 rounded-lg px-3 py-2">
               <span className="text-gray-700">
-                <span className="font-medium">{s.fromName}</span> pays <span className="font-medium">{s.toName}</span>
+                <span className="font-medium">{s.fromName}</span> {t('settlement.pays')} <span className="font-medium">{s.toName}</span>
               </span>
               <div className="flex items-center gap-2">
                 <span className="font-semibold text-gray-900">{formatCurrency(s.amount)}</span>
@@ -127,14 +129,14 @@ export default function SettleUpPanel({ groupId, members }: Props) {
                   disabled={recordSettlement.isPending}
                   className="text-xs bg-brand-600 hover:bg-brand-700 text-white rounded px-2 py-1 disabled:opacity-60"
                 >
-                  Mark paid
+                  {t('settlement.markPaid')}
                 </button>
               </div>
             </li>
           ))}
         </ul>
       ) : (
-        <p className="text-sm text-gray-500">Everyone's settled up 🎉</p>
+        <p className="text-sm text-gray-500">{t('settlement.allSettled')}</p>
       )}
     </div>
   )

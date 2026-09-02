@@ -5,6 +5,7 @@ import com.expense.tracker.dashboard.dto.CategorySpendingResponse;
 import com.expense.tracker.dashboard.dto.MonthlySpendingResponse;
 import com.expense.tracker.dashboard.dto.SummaryResponse;
 import com.expense.tracker.expense.repository.ExpenseRepository;
+import com.expense.tracker.group.repository.GroupExpenseShareRepository;
 import com.expense.tracker.user.entity.User;
 import com.expense.tracker.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -21,11 +22,26 @@ import java.util.List;
 public class DashboardService {
 
     private final ExpenseRepository expenseRepository;
+    private final GroupExpenseShareRepository groupExpenseShareRepository;
     private final UserRepository userRepository;
 
+    /**
+     * CONCEPT: personal spending vs. group spending
+     * A user's personal Expense rows are their own private spending. Group
+     * expenses are different: one member pays the full amount up front, but
+     * that isn't "their" spending - only their SHARE of it is (the rest is
+     * money owed back to them, or by them, tracked via BalanceService).
+     * So group spending here is always the sum of the user's shareAmount
+     * across their group expenses, never the raw amount they paid - that
+     * avoids inflating their totals with money that isn't really theirs.
+     * It's reported as its own figure (not silently folded into the
+     * personal total) so it stays easy to audit, plus a "combined" figure
+     * for anyone who wants the simple grand total.
+     */
     public SummaryResponse getSummary(String userEmail) {
         User user = getUser(userEmail);
         BigDecimal total = expenseRepository.sumAllByUserId(user.getId());
+        BigDecimal groupTotal = groupExpenseShareRepository.sumShareAmountByUserId(user.getId());
 
         YearMonth now = YearMonth.now();
         YearMonth prev = now.minusMonths(1);
@@ -34,6 +50,8 @@ public class DashboardService {
                 user.getId(), now.atDay(1), now.atEndOfMonth());
         BigDecimal previous = expenseRepository.sumByUserIdAndDateRange(
                 user.getId(), prev.atDay(1), prev.atEndOfMonth());
+        BigDecimal groupCurrent = groupExpenseShareRepository.sumShareAmountByUserIdAndDateRange(
+                user.getId(), now.atDay(1), now.atEndOfMonth());
 
         BigDecimal changePercent = BigDecimal.ZERO;
         if (previous.compareTo(BigDecimal.ZERO) > 0) {
@@ -42,7 +60,16 @@ public class DashboardService {
                     .multiply(BigDecimal.valueOf(100));
         }
 
-        return new SummaryResponse(total, current, previous, changePercent);
+        return new SummaryResponse(
+                total,
+                current,
+                previous,
+                changePercent,
+                groupTotal,
+                groupCurrent,
+                total.add(groupTotal),
+                current.add(groupCurrent)
+        );
     }
 
     public List<MonthlySpendingResponse> getMonthly(String userEmail, int monthsBack) {

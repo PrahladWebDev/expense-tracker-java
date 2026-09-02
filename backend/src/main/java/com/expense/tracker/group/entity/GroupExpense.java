@@ -57,6 +57,14 @@ public class GroupExpense {
     @Builder.Default
     private List<GroupExpenseShare> shares = new ArrayList<>();
 
+    /** Stored (random UUID) filename of an uploaded receipt photo, if any - see FileStorageService. */
+    private String receiptStoredName;
+
+    /** Original filename the receipt was uploaded with, shown in the UI instead of the random stored name. */
+    private String receiptOriginalName;
+
+    private String receiptContentType;
+
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
 

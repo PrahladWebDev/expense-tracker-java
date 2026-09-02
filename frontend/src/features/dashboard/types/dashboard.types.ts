@@ -3,6 +3,10 @@ export interface Summary {
   currentMonth: number
   previousMonth: number
   changePercent: number
+  groupSpendingAllTime: number
+  groupSpendingCurrentMonth: number
+  combinedAllTime: number
+  combinedCurrentMonth: number
 }
 
 export interface MonthlySpending {

@@ -1,15 +1,19 @@
 import { useState } from 'react'
 import { NavLink, Outlet, Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/app/providers/AuthProvider'
-import { useTheme } from '@/app/providers/ThemeProvider'
+import { useTheme, ACCENT_OPTIONS } from '@/app/providers/ThemeProvider'
 
-const navItems = [
-  { to: '/dashboard', label: 'Dashboard', icon: '🏠' },
-  { to: '/expenses', label: 'Expenses', icon: '🧾' },
-  { to: '/categories', label: 'Categories', icon: '🏷️' },
-  { to: '/budgets', label: 'Budgets', icon: '🎯' },
-  { to: '/groups', label: 'Groups', icon: '👥' },
-]
+function useNavItems() {
+  const { t } = useTranslation()
+  return [
+    { to: '/dashboard', label: t('nav.dashboard'), icon: '🏠' },
+    { to: '/expenses', label: t('nav.expenses'), icon: '🧾' },
+    { to: '/categories', label: t('nav.categories'), icon: '🏷️' },
+    { to: '/budgets', label: t('nav.budgets'), icon: '🎯' },
+    { to: '/groups', label: t('nav.groups'), icon: '👥' },
+  ]
+}
 
 // CONCEPT: Responsive layout, one component
 // Rather than separate "mobile" and "desktop" components, we render the
@@ -18,7 +22,9 @@ const navItems = [
 // breakpoint. This keeps the active-link logic (NavLink) in one place.
 export default function Layout() {
   const { user, logout } = useAuth()
-  const { theme, toggleTheme } = useTheme()
+  const { theme, toggleTheme, accent, setAccent } = useTheme()
+  const { t, i18n } = useTranslation()
+  const navItems = useNavItems()
   const [menuOpen, setMenuOpen] = useState(false)
 
   return (
@@ -28,7 +34,7 @@ export default function Layout() {
           <div className="flex items-center gap-8">
             <Link to="/dashboard" className="font-semibold text-gray-900 dark:text-white flex items-center gap-1.5">
               <span aria-hidden>💰</span>
-              <span className="hidden sm:inline">Expense Tracker</span>
+              <span className="hidden sm:inline">{t('nav.appName')}</span>
             </Link>
             {/* Desktop nav */}
             <nav className="hidden md:flex gap-1">
@@ -51,6 +57,25 @@ export default function Layout() {
           </div>
 
           <div className="flex items-center gap-1.5 sm:gap-3">
+            <select
+              value={i18n.language}
+              onChange={(e) => i18n.changeLanguage(e.target.value)}
+              aria-label={t('common.language')}
+              className="text-xs rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-300 px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-brand-500"
+            >
+              <option value="en">EN</option>
+              <option value="hi">हिंदी</option>
+            </select>
+            <select
+              value={accent}
+              onChange={(e) => setAccent(e.target.value as typeof accent)}
+              aria-label="Color theme"
+              className="text-xs rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-300 px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-brand-500"
+            >
+              {ACCENT_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </select>
             <button
               onClick={toggleTheme}
               aria-label="Toggle dark mode"
@@ -68,7 +93,7 @@ export default function Layout() {
               onClick={() => logout()}
               className="hidden sm:block text-sm text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-100 font-medium"
             >
-              Log out
+              {t('nav.logout')}
             </button>
             {/* Mobile hamburger */}
             <button
@@ -107,7 +132,7 @@ export default function Layout() {
               onClick={() => setMenuOpen(false)}
               className="block px-3 py-2 rounded-md text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
             >
-              {user?.fullName || 'Profile'}
+              {user?.fullName || t('nav.profile')}
             </NavLink>
             <button
               onClick={() => {
@@ -116,7 +141,7 @@ export default function Layout() {
               }}
               className="w-full text-left px-3 py-2 rounded-md text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
             >
-              Log out
+              {t('nav.logout')}
             </button>
           </nav>
         )}

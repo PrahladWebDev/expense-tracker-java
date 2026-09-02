@@ -1,0 +1,35 @@
+{
+  "nav": {
+    "dashboard": "Dashboard",
+    "expenses": "Expenses",
+    "categories": "Categories",
+    "budgets": "Budgets",
+    "groups": "Groups",
+    "profile": "Profile",
+    "logout": "Log out",
+    "appName": "Expense Tracker"
+  },
+  "common": {
+    "cancel": "Cancel",
+    "save": "Save",
+    "loading": "Loading…",
+    "language": "Language"
+  },
+  "settlement": {
+    "owner": "owner",
+    "owes": "owes {{amount}}",
+    "isOwed": "is owed {{amount}}",
+    "settledUp": "settled up",
+    "statementPdf": "Statement PDF",
+    "remove": "Remove",
+    "settleUp": "Settle up",
+    "recordPayment": "Record a payment",
+    "savePayment": "Save payment",
+    "markPaid": "Mark paid",
+    "paid": "Paid",
+    "received": "Received",
+    "pays": "pays",
+    "calculating": "Calculating…",
+    "allSettled": "Everyone's settled up 🎉"
+  }
+}

@@ -3,6 +3,8 @@ package com.expense.tracker.group.controller;
 import com.expense.tracker.common.response.ApiResponse;
 import com.expense.tracker.group.dto.*;
 import com.expense.tracker.group.service.BalanceService;
+import com.expense.tracker.group.service.GroupActivityService;
+import com.expense.tracker.group.service.GroupCsvService;
 import com.expense.tracker.group.service.GroupPdfService;
 import com.expense.tracker.group.service.GroupService;
 import jakarta.validation.Valid;
@@ -24,6 +26,8 @@ public class GroupController {
     private final GroupService groupService;
     private final BalanceService balanceService;
     private final GroupPdfService groupPdfService;
+    private final GroupCsvService groupCsvService;
+    private final GroupActivityService groupActivityService;
 
     @PostMapping
     public ResponseEntity<ApiResponse<GroupResponse>> create(
@@ -83,11 +87,49 @@ public class GroupController {
         return ResponseEntity.ok(ApiResponse.success(balanceService.computeBalances(groupId)));
     }
 
+    /** Recent "what happened" feed for the group - expenses, members, settlements, comments. */
+    @GetMapping("/{groupId}/activity")
+    public ResponseEntity<ApiResponse<List<GroupActivityResponse>>> activity(
+            Authentication authentication, @PathVariable Long groupId) {
+        groupService.getGroup(authentication.getName(), groupId); // enforces membership
+        return ResponseEntity.ok(ApiResponse.success(groupActivityService.listActivity(groupId)));
+    }
+
+    /** Owner-only: invalidates the current invite link and issues a fresh code. */
+    @PostMapping("/{groupId}/invite-code/regenerate")
+    public ResponseEntity<ApiResponse<GroupResponse>> regenerateInviteCode(
+            Authentication authentication, @PathVariable Long groupId) {
+        GroupResponse response = groupService.regenerateInviteCode(authentication.getName(), groupId);
+        return ResponseEntity.ok(ApiResponse.success(response, "Invite link regenerated"));
+    }
+
+    /**
+     * Joins a group via its invite link/code. Deliberately does NOT require
+     * the caller to already be a member - that's the whole point, it lets
+     * a friend who isn't in anyone's contacts join directly.
+     */
+    @PostMapping("/join/{inviteCode}")
+    public ResponseEntity<ApiResponse<GroupResponse>> joinByInviteCode(
+            Authentication authentication, @PathVariable String inviteCode) {
+        GroupResponse response = groupService.joinByInviteCode(authentication.getName(), inviteCode);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(response, "Joined group"));
+    }
+
     /** Full group report: every expense, every member's balance, full settlement history. */
     @GetMapping("/{groupId}/report/pdf")
     public ResponseEntity<byte[]> groupReportPdf(Authentication authentication, @PathVariable Long groupId) {
         byte[] pdf = groupPdfService.generateGroupReport(authentication.getName(), groupId);
         return pdfResponse(pdf, "group-" + groupId + "-report.pdf");
+    }
+
+    /** Same report as the PDF, in CSV form - opens directly in Excel/Sheets for further crunching. */
+    @GetMapping("/{groupId}/report/csv")
+    public ResponseEntity<byte[]> groupReportCsv(Authentication authentication, @PathVariable Long groupId) {
+        byte[] csv = groupCsvService.generateGroupCsv(authentication.getName(), groupId);
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType("text/csv"))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"group-" + groupId + "-report.csv\"")
+                .body(csv);
     }
 
     /** Per-member statement: just that member's expenses, settlements, and final balance. */

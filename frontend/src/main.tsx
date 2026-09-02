@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { RouterProvider } from 'react-router-dom'
 import { router } from './app/router/router'
 import './index.css'
+import './i18n/config'
 
 // CONCEPT: TanStack Query's QueryClient
 // The QueryClient is the central cache for all "server state" (data that

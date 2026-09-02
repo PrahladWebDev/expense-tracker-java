@@ -14,5 +14,7 @@ public record GroupExpenseResponse(
         String paidByName,
         String splitType,
         List<ExpenseShareResponse> shares,
+        boolean hasReceipt,
+        String receiptOriginalName,
         Instant createdAt
 ) {}

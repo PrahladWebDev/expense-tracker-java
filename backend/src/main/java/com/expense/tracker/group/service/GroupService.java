@@ -7,6 +7,7 @@ import com.expense.tracker.group.dto.AddMemberRequest;
 import com.expense.tracker.group.dto.GroupRequest;
 import com.expense.tracker.group.dto.GroupResponse;
 import com.expense.tracker.group.entity.ExpenseGroup;
+import com.expense.tracker.group.entity.GroupActivityType;
 import com.expense.tracker.group.entity.GroupMember;
 import com.expense.tracker.group.entity.GroupMemberRole;
 import com.expense.tracker.group.entity.GroupStatus;
@@ -23,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Groups are the shared "pot" that group expenses, balances and
@@ -40,6 +42,7 @@ public class GroupService {
     private final UserRepository userRepository;
     private final GroupMapper mapper;
     private final BalanceService balanceService;
+    private final GroupActivityService activityService;
 
     @Transactional
     public GroupResponse createGroup(String userEmail, GroupRequest request) {
@@ -58,6 +61,8 @@ public class GroupService {
                 .role(GroupMemberRole.OWNER)
                 .build();
         memberRepository.save(ownerMembership);
+
+        activityService.log(group, creator, GroupActivityType.GROUP_CREATED, creator.getFullName() + " created the group");
 
         return mapper.toResponse(group, List.of(ownerMembership));
     }
@@ -97,6 +102,55 @@ public class GroupService {
                 .build();
         memberRepository.save(member);
 
+        activityService.log(group, requester, GroupActivityType.MEMBER_ADDED,
+                requester.getFullName() + " added " + toAdd.getFullName() + " to the group");
+
+        return mapper.toResponse(group, memberRepository.findByGroupId(groupId));
+    }
+
+    /**
+     * Anyone with a valid, current invite code can join without needing to
+     * already be a known contact of an existing member - handy for friends
+     * who aren't in your address book. The code is scoped to one group and
+     * is invalidated (a fresh one generated) whenever the owner calls
+     * regenerateInviteCode, e.g. after sharing it too widely.
+     */
+    @Transactional
+    public GroupResponse joinByInviteCode(String userEmail, String inviteCode) {
+        User user = getUser(userEmail);
+        ExpenseGroup group = groupRepository.findByInviteCode(inviteCode)
+                .orElseThrow(() -> new ResourceNotFoundException("This invite link is invalid or has expired"));
+        requireOpen(group);
+
+        if (memberRepository.existsByGroupIdAndUserId(group.getId(), user.getId())) {
+            throw new DuplicateResourceException("You're already a member of this group");
+        }
+
+        GroupMember member = GroupMember.builder()
+                .group(group)
+                .user(user)
+                .role(GroupMemberRole.MEMBER)
+                .build();
+        memberRepository.save(member);
+
+        activityService.log(group, user, GroupActivityType.MEMBER_ADDED, user.getFullName() + " joined via invite link");
+
+        return mapper.toResponse(group, memberRepository.findByGroupId(group.getId()));
+    }
+
+    /** Owner-only: invalidates the old invite link and issues a new one. */
+    @Transactional
+    public GroupResponse regenerateInviteCode(String userEmail, Long groupId) {
+        User requester = getUser(userEmail);
+        ExpenseGroup group = getGroupEntity(groupId);
+        GroupMember requesterMembership = requireMembership(groupId, requester.getId());
+        if (requesterMembership.getRole() != GroupMemberRole.OWNER) {
+            throw new ForbiddenException("Only the group owner can regenerate the invite link");
+        }
+
+        group.setInviteCode(UUID.randomUUID().toString().replace("-", "").substring(0, 10));
+        groupRepository.save(group);
+
         return mapper.toResponse(group, memberRepository.findByGroupId(groupId));
     }
 
@@ -130,6 +184,8 @@ public class GroupService {
         }
 
         memberRepository.delete(target);
+        activityService.log(group, requester, GroupActivityType.MEMBER_REMOVED,
+                requester.getFullName() + " removed " + target.getUser().getFullName() + " from the group");
         return mapper.toResponse(group, memberRepository.findByGroupId(groupId));
     }
 
@@ -168,6 +224,8 @@ public class GroupService {
         group.setClosedAt(Instant.now());
         groupRepository.save(group);
 
+        activityService.log(group, requester, GroupActivityType.GROUP_CLOSED, requester.getFullName() + " closed the group");
+
         return mapper.toResponse(group, memberRepository.findByGroupId(groupId));
     }
 
@@ -184,6 +242,8 @@ public class GroupService {
         group.setStatus(GroupStatus.OPEN);
         group.setClosedAt(null);
         groupRepository.save(group);
+
+        activityService.log(group, requester, GroupActivityType.GROUP_REOPENED, requester.getFullName() + " reopened the group");
 
         return mapper.toResponse(group, memberRepository.findByGroupId(groupId));
     }

@@ -35,6 +35,23 @@ export default function DashboardPage() {
         <StatCard label="Last month" value={summary ? formatCurrency(summary.previousMonth) : '…'} />
       </div>
 
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <StatCard
+          label="Your share of group expenses (all time)"
+          value={summary ? formatCurrency(summary.groupSpendingAllTime) : '…'}
+          sub="Your split only, not what you paid up front"
+        />
+        <StatCard
+          label="Your share of group expenses (this month)"
+          value={summary ? formatCurrency(summary.groupSpendingCurrentMonth) : '…'}
+        />
+        <StatCard
+          label="Combined spending (this month)"
+          value={summary ? formatCurrency(summary.combinedCurrentMonth) : '…'}
+          sub="Personal + your group share"
+        />
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white border border-gray-200 rounded-xl p-5">
           <h2 className="font-semibold text-gray-900 mb-4">Monthly spending</h2>

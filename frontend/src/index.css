@@ -9,3 +9,65 @@ html {
 body {
   transition: background-color 0.15s ease;
 }
+
+/*
+ * CONCEPT: accent themes via CSS custom properties
+ * Each --brand-NNN variable is an RGB triplet ("R G B", no commas - that's
+ * what Tailwind's rgb(var(--x) / <alpha-value>) syntax in tailwind.config.js
+ * expects). The `data-accent` attribute is set on <html> by ThemeProvider;
+ * whichever block matches determines the brand color for the ENTIRE app,
+ * since brand-50..700 are already used everywhere for buttons, links,
+ * active nav state and badges. This is layered on top of - not a
+ * replacement for - the existing light/dark background toggle (the
+ * `.dark` class), so any accent theme can be viewed in either light or
+ * dark background mode.
+ */
+:root,
+[data-accent="default"] {
+  --brand-50: 238 242 255;
+  --brand-100: 224 231 255;
+  --brand-300: 165 180 252;
+  --brand-500: 99 102 241;
+  --brand-600: 79 70 229;
+  --brand-700: 67 56 202;
+}
+
+/* Nord - cool, muted blue/frost palette (https://www.nordtheme.com) */
+[data-accent="nord"] {
+  --brand-50: 236 244 249;
+  --brand-100: 216 233 242;
+  --brand-300: 143 188 187;
+  --brand-500: 94 129 172;
+  --brand-600: 76 106 146;
+  --brand-700: 59 83 117;
+}
+
+/* Dracula - dark, high-contrast purple/pink palette (https://draculatheme.com) */
+[data-accent="dracula"] {
+  --brand-50: 247 240 252;
+  --brand-100: 237 220 249;
+  --brand-300: 216 178 244;
+  --brand-500: 189 147 249;
+  --brand-600: 162 106 237;
+  --brand-700: 124 79 191;
+}
+
+/* Synthwave - hot pink/magenta 80s retro-futurism palette */
+[data-accent="synthwave"] {
+  --brand-50: 253 232 249;
+  --brand-100: 250 208 244;
+  --brand-300: 244 143 232;
+  --brand-500: 236 64 214;
+  --brand-600: 217 33 191;
+  --brand-700: 174 21 154;
+}
+
+/* Forest - deep green, natural/earthy palette */
+[data-accent="forest"] {
+  --brand-50: 236 246 237;
+  --brand-100: 214 235 217;
+  --brand-300: 141 194 149;
+  --brand-500: 61 140 74;
+  --brand-600: 47 111 58;
+  --brand-700: 36 87 45;
+}

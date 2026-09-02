@@ -20,6 +20,8 @@ public class GroupExpenseMapper {
                 e.getShares().stream()
                         .map(s -> new ExpenseShareResponse(s.getUser().getId(), s.getUser().getFullName(), s.getShareAmount()))
                         .toList(),
+                e.getReceiptStoredName() != null,
+                e.getReceiptOriginalName(),
                 e.getCreatedAt()
         );
     }

@@ -58,6 +58,15 @@ public class ExpenseGroup {
     /** When the group was closed; null while the group is OPEN. */
     private Instant closedAt;
 
+    /**
+     * A short random code that lets anyone with the link join the group
+     * without needing to already be a registered contact - see
+     * GroupService#joinByInviteCode. Regenerating it (owner-only)
+     * invalidates any link that was shared before.
+     */
+    @Column(unique = true, length = 12)
+    private String inviteCode;
+
     @OneToMany(mappedBy = "group", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<GroupMember> members = new ArrayList<>();
@@ -67,6 +76,9 @@ public class ExpenseGroup {
         this.createdAt = Instant.now();
         if (this.status == null) {
             this.status = GroupStatus.OPEN;
+        }
+        if (this.inviteCode == null) {
+            this.inviteCode = java.util.UUID.randomUUID().toString().replace("-", "").substring(0, 10);
         }
     }
 }

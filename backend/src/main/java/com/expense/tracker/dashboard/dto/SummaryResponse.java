@@ -6,5 +6,9 @@ public record SummaryResponse(
         BigDecimal totalAllTime,
         BigDecimal currentMonth,
         BigDecimal previousMonth,
-        BigDecimal changePercent
+        BigDecimal changePercent,
+        BigDecimal groupSpendingAllTime,
+        BigDecimal groupSpendingCurrentMonth,
+        BigDecimal combinedAllTime,
+        BigDecimal combinedCurrentMonth
 ) {}

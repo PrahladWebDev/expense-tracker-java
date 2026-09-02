@@ -16,6 +16,10 @@ spring:
       hibernate:
         format_sql: true
         dialect: org.hibernate.dialect.MySQLDialect
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
 
 app:
   jwt:
@@ -24,3 +28,12 @@ app:
     refresh-token-expiration-ms: ${JWT_REFRESH_EXPIRATION:604800000}
   cors:
     allowed-origins: ${CORS_ORIGINS:http://localhost:5173}
+  uploads:
+    # Where receipt photos are stored on disk. Point this at a persistent
+    # volume in production - the default is fine for local dev only.
+    dir: ${UPLOADS_DIR:./uploads}
+  ocr:
+    # OCR.space API key for receipt scanning (see OcrService). "helloworld"
+    # is their public, rate-limited demo key - get your own free key at
+    # https://ocr.space/ocrapi for real use.
+    api-key: ${OCR_SPACE_API_KEY:helloworld}

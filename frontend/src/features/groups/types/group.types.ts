@@ -17,6 +17,7 @@ export interface Group {
   createdAt: string
   status: GroupStatus
   closedAt: string | null
+  inviteCode: string
   members: GroupMember[]
 }
 
@@ -51,6 +52,8 @@ export interface GroupExpense {
   paidByName: string
   splitType: SplitType
   shares: ExpenseShare[]
+  hasReceipt: boolean
+  receiptOriginalName: string | null
   createdAt: string
 }
 
@@ -95,4 +98,28 @@ export interface SettlementPayload {
   toUserId: number
   amount: number
   note?: string
+}
+
+export interface Comment {
+  id: number
+  userId: number
+  userName: string
+  text: string
+  createdAt: string
+}
+
+export interface Activity {
+  id: number
+  type: string
+  message: string
+  actorUserId: number | null
+  actorName: string
+  createdAt: string
+}
+
+export interface OcrResult {
+  rawText: string
+  suggestedAmount: number | null
+  suggestedCategory: string | null
+  suggestedDescription: string | null
 }

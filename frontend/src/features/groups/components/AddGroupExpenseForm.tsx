@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { GroupMember, SplitType } from '../types/group.types'
 import { useAddGroupExpense } from '../hooks/useGroups'
+import { groupApi } from '../api/groupApi'
 
 interface Props {
   groupId: number
@@ -29,9 +30,37 @@ export default function AddGroupExpenseForm({ groupId, members, currentUserId, o
   const [participantIds, setParticipantIds] = useState<number[]>(members.map((m) => m.userId))
   const [values, setValues] = useState<Record<number, string>>({})
   const [error, setError] = useState<string | null>(null)
+  const [receiptFile, setReceiptFile] = useState<File | null>(null)
+  const [scanning, setScanning] = useState(false)
+  const [scanNote, setScanNote] = useState<string | null>(null)
 
   function toggleParticipant(userId: number) {
     setParticipantIds((prev) => (prev.includes(userId) ? prev.filter((id) => id !== userId) : [...prev, userId]))
+  }
+
+  // Scans the photo with OCR and pre-fills the amount/description from
+  // whatever it could read - the user still reviews every field before
+  // submitting, nothing here saves the expense.
+  async function onScanReceipt(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setReceiptFile(file)
+    setScanning(true)
+    setScanNote(null)
+    try {
+      const result = await groupApi.scanReceipt(file)
+      if (result.suggestedAmount) setAmount(String(result.suggestedAmount))
+      if (result.suggestedDescription && !description) setDescription(result.suggestedDescription.slice(0, 255))
+      setScanNote(
+        result.suggestedAmount
+          ? `Scanned - found ₹${result.suggestedAmount}${result.suggestedCategory ? ` (looks like ${result.suggestedCategory})` : ''}. Please double-check before saving.`
+          : "Scanned, but couldn't confidently read an amount - please fill it in manually."
+      )
+    } catch {
+      setScanNote("Couldn't scan that receipt - you can still attach it and enter details manually.")
+    } finally {
+      setScanning(false)
+    }
   }
 
   async function onSubmit(e: React.FormEvent) {
@@ -44,7 +73,7 @@ export default function AddGroupExpenseForm({ groupId, members, currentUserId, o
     }
 
     try {
-      await addExpense.mutateAsync({
+      const created = await addExpense.mutateAsync({
         amount: Number(amount),
         description: description || undefined,
         expenseDate,
@@ -55,9 +84,20 @@ export default function AddGroupExpenseForm({ groupId, members, currentUserId, o
           value: splitType === 'EQUAL' ? undefined : Number(values[userId] || 0),
         })),
       })
+
+      if (receiptFile) {
+        try {
+          await groupApi.uploadReceipt(groupId, created.id, receiptFile)
+        } catch {
+          // Expense itself saved fine; only the receipt attach failed - don't block the flow over it.
+        }
+      }
+
       setAmount('')
       setDescription('')
       setValues({})
+      setReceiptFile(null)
+      setScanNote(null)
       onDone()
     } catch (err: any) {
       setError(err?.response?.data?.message || 'Something went wrong')
@@ -67,6 +107,20 @@ export default function AddGroupExpenseForm({ groupId, members, currentUserId, o
   return (
     <form onSubmit={onSubmit} className="space-y-3">
       {error && <p className="text-sm text-red-600">{error}</p>}
+
+      <div>
+        <label className="block text-sm text-gray-700 mb-1">Receipt (optional)</label>
+        <div className="flex items-center gap-2">
+          <input
+            type="file"
+            accept="image/*"
+            onChange={onScanReceipt}
+            className="text-sm text-gray-600 file:mr-2 file:rounded-md file:border-0 file:bg-brand-50 file:text-brand-700 file:px-3 file:py-1.5 file:text-sm file:font-medium hover:file:bg-brand-100"
+          />
+          {scanning && <span className="text-xs text-gray-500">Scanning…</span>}
+        </div>
+        {scanNote && <p className="text-xs text-gray-500 mt-1">{scanNote}</p>}
+      </div>
 
       <div className="grid grid-cols-2 gap-3">
         <div>

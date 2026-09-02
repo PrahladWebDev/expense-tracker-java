@@ -14,6 +14,7 @@ import CategoriesPage from '@/features/categories/pages/CategoriesPage'
 import BudgetsPage from '@/features/budgets/pages/BudgetsPage'
 import GroupsListPage from '@/features/groups/pages/GroupsListPage'
 import GroupDetailPage from '@/features/groups/pages/GroupDetailPage'
+import JoinGroupPage from '@/features/groups/pages/JoinGroupPage'
 
 // CONCEPT: React Router (data router API)
 // createBrowserRouter builds a route tree matched against the URL, using
@@ -67,6 +68,7 @@ export const router = createBrowserRouter([
               { path: '/budgets', element: <BudgetsPage /> },
               { path: '/groups', element: <GroupsListPage /> },
               { path: '/groups/:id', element: <GroupDetailPage /> },
+              { path: '/groups/join/:code', element: <JoinGroupPage /> },
               { path: '/profile', element: <ProfilePage /> },
             ],
           },

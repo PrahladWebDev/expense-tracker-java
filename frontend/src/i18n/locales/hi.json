@@ -1,0 +1,35 @@
+{
+  "nav": {
+    "dashboard": "डैशबोर्ड",
+    "expenses": "खर्चे",
+    "categories": "कैटेगरी",
+    "budgets": "बजट",
+    "groups": "ग्रुप्स",
+    "profile": "प्रोफाइल",
+    "logout": "लॉगआउट",
+    "appName": "एक्सपेंस ट्रैकर"
+  },
+  "common": {
+    "cancel": "कैंसिल",
+    "save": "सेव करें",
+    "loading": "लोड हो रहा है…",
+    "language": "भाषा"
+  },
+  "settlement": {
+    "owner": "ओनर",
+    "owes": "{{amount}} देने हैं",
+    "isOwed": "{{amount}} लेने हैं",
+    "settledUp": "हिसाब बराबर",
+    "statementPdf": "स्टेटमेंट PDF",
+    "remove": "हटा दें",
+    "settleUp": "हिसाब कर दें",
+    "recordPayment": "पेमेंट डालें",
+    "savePayment": "पेमेंट सेव करें",
+    "markPaid": "दे दिया",
+    "paid": "दे दिया",
+    "received": "मिल गया",
+    "pays": "देगा/देगी",
+    "calculating": "हिसाब लगा रहे हैं…",
+    "allSettled": "सबका हिसाब बराबर है 🎉"
+  }
+}

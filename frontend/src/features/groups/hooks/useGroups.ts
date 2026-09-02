@@ -138,3 +138,66 @@ export function useRecordSettlement(groupId: number) {
     },
   })
 }
+
+// --- Activity feed ---
+export function useGroupActivity(groupId: number) {
+  return useQuery({
+    queryKey: ['groups', groupId, 'activity'],
+    queryFn: () => groupApi.getActivity(groupId),
+    enabled: !!groupId,
+  })
+}
+
+// --- Invite link ---
+export function useRegenerateInviteCode(groupId: number) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: () => groupApi.regenerateInviteCode(groupId),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['groups', groupId] }),
+  })
+}
+
+export function useJoinByInviteCode() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (inviteCode: string) => groupApi.joinByInviteCode(inviteCode),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['groups'] }),
+  })
+}
+
+// --- Comments on an expense ---
+export function useComments(groupId: number, expenseId: number | null) {
+  return useQuery({
+    queryKey: ['groups', groupId, 'expenses', expenseId, 'comments'],
+    queryFn: () => groupApi.getComments(groupId, expenseId as number),
+    enabled: !!groupId && !!expenseId,
+  })
+}
+
+export function useAddComment(groupId: number, expenseId: number) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (text: string) => groupApi.addComment(groupId, expenseId, text),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['groups', groupId, 'expenses', expenseId, 'comments'] })
+      queryClient.invalidateQueries({ queryKey: ['groups', groupId, 'activity'] })
+    },
+  })
+}
+
+export function useRemoveComment(groupId: number, expenseId: number) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (commentId: number) => groupApi.removeComment(groupId, expenseId, commentId),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['groups', groupId, 'expenses', expenseId, 'comments'] }),
+  })
+}
+
+// --- Receipt photo on an expense ---
+export function useUploadReceipt(groupId: number, expenseId: number) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (file: File) => groupApi.uploadReceipt(groupId, expenseId, file),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['groups', groupId, 'expenses'] }),
+  })
+}

@@ -2,6 +2,7 @@ package com.expense.tracker.group.service;
 
 import com.expense.tracker.common.exception.ForbiddenException;
 import com.expense.tracker.common.exception.ResourceNotFoundException;
+import com.expense.tracker.common.storage.FileStorageService;
 import com.expense.tracker.group.dto.ExpenseShareInput;
 import com.expense.tracker.group.dto.GroupExpenseRequest;
 import com.expense.tracker.group.dto.GroupExpenseResponse;
@@ -14,7 +15,9 @@ import com.expense.tracker.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.InputStream;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
@@ -33,6 +36,8 @@ public class GroupExpenseService {
     private final UserRepository userRepository;
     private final GroupService groupService;
     private final GroupExpenseMapper mapper;
+    private final GroupActivityService activityService;
+    private final FileStorageService fileStorageService;
 
     public List<GroupExpenseResponse> listExpenses(String userEmail, Long groupId) {
         requireMembership(userEmail, groupId);
@@ -51,6 +56,7 @@ public class GroupExpenseService {
         requireMembership(userEmail, groupId);
         ExpenseGroup group = groupService.getGroupEntity(groupId);
         groupService.requireOpen(group);
+        User actor = userRepository.findByEmail(userEmail).orElse(null);
 
         User paidBy = memberRepository.findByGroupIdAndUserId(groupId, request.paidByUserId())
                 .orElseThrow(() -> new ResourceNotFoundException("paidByUserId is not a member of this group"))
@@ -85,7 +91,14 @@ public class GroupExpenseService {
         }
         expense.setShares(shareEntities);
 
-        return mapper.toResponse(groupExpenseRepository.save(expense));
+        GroupExpense saved = groupExpenseRepository.save(expense);
+
+        activityService.log(group, actor, GroupActivityType.EXPENSE_ADDED,
+                (actor != null ? actor.getFullName() : "Someone") + " added ₹" + saved.getAmount()
+                        + " for " + (saved.getDescription() != null ? saved.getDescription() : "a group expense")
+                        + " (paid by " + paidBy.getFullName() + ")");
+
+        return mapper.toResponse(saved);
     }
 
     @Transactional
@@ -102,8 +115,46 @@ public class GroupExpenseService {
             throw new ForbiddenException("Only the person who paid, or the group owner, can delete this expense");
         }
 
+        if (expense.getReceiptStoredName() != null) {
+            fileStorageService.delete(expense.getReceiptStoredName());
+        }
+
+        activityService.log(expense.getGroup(), requester, GroupActivityType.EXPENSE_DELETED,
+                requester.getFullName() + " deleted the ₹" + expense.getAmount() + " expense \""
+                        + (expense.getDescription() != null ? expense.getDescription() : "group expense") + "\"");
+
         groupExpenseRepository.delete(expense);
     }
+
+    /** Only a member can attach a receipt photo; any existing receipt on the expense is replaced. */
+    @Transactional
+    public void uploadReceipt(String userEmail, Long groupId, Long expenseId, MultipartFile file) {
+        requireMembership(userEmail, groupId);
+        GroupExpense expense = getExpenseEntity(groupId, expenseId);
+        groupService.requireOpen(expense.getGroup());
+
+        if (expense.getReceiptStoredName() != null) {
+            fileStorageService.delete(expense.getReceiptStoredName());
+        }
+
+        String storedName = fileStorageService.store(file);
+        expense.setReceiptStoredName(storedName);
+        expense.setReceiptOriginalName(file.getOriginalFilename());
+        expense.setReceiptContentType(file.getContentType());
+        groupExpenseRepository.save(expense);
+    }
+
+    public ReceiptFile getReceipt(String userEmail, Long groupId, Long expenseId) {
+        requireMembership(userEmail, groupId);
+        GroupExpense expense = getExpenseEntity(groupId, expenseId);
+        if (expense.getReceiptStoredName() == null) {
+            throw new ResourceNotFoundException("This expense has no receipt attached");
+        }
+        InputStream stream = fileStorageService.read(expense.getReceiptStoredName());
+        return new ReceiptFile(stream, expense.getReceiptContentType(), expense.getReceiptOriginalName());
+    }
+
+    public record ReceiptFile(InputStream stream, String contentType, String originalName) {}
 
     /**
      * Turns the caller's split instructions into a concrete rupee amount

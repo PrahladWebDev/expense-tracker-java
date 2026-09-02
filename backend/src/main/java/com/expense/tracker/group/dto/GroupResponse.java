@@ -12,5 +12,6 @@ public record GroupResponse(
         Instant createdAt,
         String status,
         Instant closedAt,
+        String inviteCode,
         List<GroupMemberResponse> members
 ) {}

@@ -5,6 +5,7 @@ import com.expense.tracker.group.dto.SettlementRequest;
 import com.expense.tracker.group.dto.SettlementResponse;
 import com.expense.tracker.group.dto.SettlementSuggestionResponse;
 import com.expense.tracker.group.entity.ExpenseGroup;
+import com.expense.tracker.group.entity.GroupActivityType;
 import com.expense.tracker.group.entity.Settlement;
 import com.expense.tracker.group.mapper.SettlementMapper;
 import com.expense.tracker.group.repository.SettlementRepository;
@@ -25,6 +26,7 @@ public class SettlementService {
     private final GroupService groupService;
     private final BalanceService balanceService;
     private final SettlementMapper mapper;
+    private final GroupActivityService activityService;
 
     public List<SettlementResponse> listSettlements(String userEmail, Long groupId) {
         requireMembership(userEmail, groupId);
@@ -68,7 +70,12 @@ public class SettlementService {
                 .note(request.note())
                 .build();
 
-        return mapper.toResponse(settlementRepository.save(settlement));
+        Settlement saved = settlementRepository.save(settlement);
+
+        activityService.log(group, fromUser, GroupActivityType.SETTLEMENT_RECORDED,
+                fromUser.getFullName() + " paid " + toUser.getFullName() + " ₹" + request.amount());
+
+        return mapper.toResponse(saved);
     }
 
     private User getUser(Long userId) {

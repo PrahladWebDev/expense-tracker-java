@@ -1,10 +1,13 @@
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/app/providers/AuthProvider'
 import { formatCurrency } from '@/utils/format'
 import { groupApi } from '../api/groupApi'
 import AddGroupExpenseForm from '../components/AddGroupExpenseForm'
 import SettleUpPanel from '../components/SettleUpPanel'
+import ActivityFeed from '../components/ActivityFeed'
+import ExpenseComments from '../components/ExpenseComments'
 import {
   useAddMember,
   useCloseGroup,
@@ -13,6 +16,7 @@ import {
   useGroupBalances,
   useGroupExpenses,
   useReopenGroup,
+  useRegenerateInviteCode,
   useRemoveGroupExpense,
   useRemoveMember,
   useSettlements,
@@ -27,6 +31,7 @@ export default function GroupDetailPage() {
   const groupId = Number(id)
   const navigate = useNavigate()
   const { user } = useAuth()
+  const { t } = useTranslation()
 
   const { data: group, isLoading } = useGroup(groupId)
   const { data: balances } = useGroupBalances(groupId)
@@ -39,12 +44,16 @@ export default function GroupDetailPage() {
   const removeExpense = useRemoveGroupExpense(groupId)
   const closeGroup = useCloseGroup(groupId)
   const reopenGroup = useReopenGroup(groupId)
+  const regenerateInviteCode = useRegenerateInviteCode(groupId)
 
   const [memberEmail, setMemberEmail] = useState('')
   const [memberError, setMemberError] = useState<string | null>(null)
   const [showAddExpense, setShowAddExpense] = useState(false)
   const [downloadingReport, setDownloadingReport] = useState(false)
+  const [downloadingCsv, setDownloadingCsv] = useState(false)
   const [downloadingStatementFor, setDownloadingStatementFor] = useState<number | null>(null)
+  const [expandedExpenseId, setExpandedExpenseId] = useState<number | null>(null)
+  const [inviteCopied, setInviteCopied] = useState(false)
 
   if (isLoading || !group) {
     return <p className="text-sm text-gray-500">Loading group…</p>
@@ -83,6 +92,34 @@ export default function GroupDetailPage() {
     } finally {
       setDownloadingStatementFor(null)
     }
+  }
+
+  async function onDownloadCsv() {
+    setDownloadingCsv(true)
+    try {
+      const url = await groupApi.downloadGroupReportCsv(groupId)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `group-${groupId}-report.csv`
+      a.click()
+    } finally {
+      setDownloadingCsv(false)
+    }
+  }
+
+  function inviteLink() {
+    return `${window.location.origin}/groups/join/${group.inviteCode}`
+  }
+
+  async function onCopyInviteLink() {
+    await navigator.clipboard.writeText(inviteLink())
+    setInviteCopied(true)
+    setTimeout(() => setInviteCopied(false), 2000)
+  }
+
+  async function onRegenerateInviteLink() {
+    if (!confirm('Regenerate the invite link? The old link will stop working.')) return
+    await regenerateInviteCode.mutateAsync()
   }
 
   async function onDeleteGroup() {
@@ -135,6 +172,13 @@ export default function GroupDetailPage() {
           >
             {downloadingReport ? 'Preparing…' : '📄 Group PDF report'}
           </button>
+          <button
+            onClick={onDownloadCsv}
+            disabled={downloadingCsv}
+            className="text-sm rounded-md border border-gray-300 px-3 py-1.5 hover:bg-gray-50 disabled:opacity-60"
+          >
+            {downloadingCsv ? 'Preparing…' : '📊 Export CSV'}
+          </button>
           {isOwner && !isClosed && (
             <button
               onClick={onCloseGroup}
@@ -183,15 +227,15 @@ export default function GroupDetailPage() {
                   <li key={m.userId} className="flex items-center justify-between text-sm">
                     <div>
                       <p className="text-gray-900">
-                        {m.fullName} {m.role === 'OWNER' && <span className="text-xs text-brand-600">(owner)</span>}
+                        {m.fullName} {m.role === 'OWNER' && <span className="text-xs text-brand-600">({t('settlement.owner')})</span>}
                       </p>
                       {balance && (
                         <p className={`text-xs ${balance.netBalance > 0 ? 'text-green-600' : balance.netBalance < 0 ? 'text-red-600' : 'text-gray-500'}`}>
                           {balance.netBalance > 0
-                            ? `is owed ${formatCurrency(balance.netBalance)}`
+                            ? t('settlement.isOwed', { amount: formatCurrency(balance.netBalance) })
                             : balance.netBalance < 0
-                            ? `owes ${formatCurrency(Math.abs(balance.netBalance))}`
-                            : 'settled up'}
+                            ? t('settlement.owes', { amount: formatCurrency(Math.abs(balance.netBalance)) })
+                            : t('settlement.settledUp')}
                         </p>
                       )}
                     </div>
@@ -201,14 +245,14 @@ export default function GroupDetailPage() {
                         disabled={downloadingStatementFor === m.userId}
                         className="text-xs text-brand-600 hover:underline disabled:opacity-60"
                       >
-                        {downloadingStatementFor === m.userId ? '…' : 'Statement PDF'}
+                        {downloadingStatementFor === m.userId ? '…' : t('settlement.statementPdf')}
                       </button>
                       {isOwner && m.role !== 'OWNER' && !isClosed && (
                         <button
                           onClick={() => removeMember.mutate(m.userId)}
                           className="text-xs text-red-600 hover:underline"
                         >
-                          Remove
+                          {t('settlement.remove')}
                         </button>
                       )}
                     </div>
@@ -240,6 +284,43 @@ export default function GroupDetailPage() {
           </div>
 
           {!isClosed && <SettleUpPanel groupId={groupId} members={group.members} />}
+
+          {isOwner && (
+            <div className="bg-white border border-gray-200 rounded-xl p-5">
+              <h2 className="font-semibold text-gray-900 mb-2">Invite link</h2>
+              <p className="text-xs text-gray-500 mb-3">
+                Share this link so a friend can join the group directly, even if they're not in anyone's contacts.
+              </p>
+              <div className="flex gap-2">
+                <input
+                  readOnly
+                  value={inviteLink()}
+                  onFocus={(e) => e.target.select()}
+                  className="flex-1 rounded-md border border-gray-300 px-2 py-1.5 text-xs text-gray-600 bg-gray-50"
+                />
+                <button
+                  onClick={onCopyInviteLink}
+                  className="text-xs rounded-md border border-gray-300 px-2.5 py-1.5 hover:bg-gray-50 shrink-0"
+                >
+                  {inviteCopied ? 'Copied!' : 'Copy'}
+                </button>
+              </div>
+              {!isClosed && (
+                <button
+                  onClick={onRegenerateInviteLink}
+                  disabled={regenerateInviteCode.isPending}
+                  className="mt-2 text-xs text-red-600 hover:underline disabled:opacity-60"
+                >
+                  Regenerate link (invalidates the old one)
+                </button>
+              )}
+            </div>
+          )}
+
+          <div className="bg-white border border-gray-200 rounded-xl p-5">
+            <h2 className="font-semibold text-gray-900 mb-3">Activity</h2>
+            <ActivityFeed groupId={groupId} />
+          </div>
 
           <div className="bg-white border border-gray-200 rounded-xl p-5">
             <h2 className="font-semibold text-gray-900 mb-3">Settlement history</h2>
@@ -295,6 +376,7 @@ export default function GroupDetailPage() {
                         <p className="font-medium text-gray-900">{e.description || 'Group expense'}</p>
                         <p className="text-xs text-gray-500">
                           {e.expenseDate} · paid by {e.paidByName} · {e.splitType.toLowerCase()} split
+                          {e.hasReceipt && ' · 📎 receipt'}
                         </p>
                       </div>
                       <div className="text-right">
@@ -312,6 +394,20 @@ export default function GroupDetailPage() {
                     <p className="text-xs text-gray-400 mt-2">
                       {e.shares.map((s) => `${s.fullName}: ${formatCurrency(s.shareAmount)}`).join(' · ')}
                     </p>
+                    <button
+                      onClick={() => setExpandedExpenseId((cur) => (cur === e.id ? null : e.id))}
+                      className="text-xs text-brand-600 hover:underline mt-2"
+                    >
+                      {expandedExpenseId === e.id ? 'Hide notes' : 'Notes & receipt'}
+                    </button>
+                    {expandedExpenseId === e.id && (
+                      <ExpenseComments
+                        groupId={groupId}
+                        expense={e}
+                        currentUserId={user?.id ?? 0}
+                        isClosed={isClosed}
+                      />
+                    )}
                   </li>
                 ))}
               </ul>

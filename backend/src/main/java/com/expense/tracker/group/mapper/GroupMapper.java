@@ -31,6 +31,7 @@ public class GroupMapper {
                 g.getCreatedAt(),
                 g.getStatus().name(),
                 g.getClosedAt(),
+                g.getInviteCode(),
                 members.stream().map(this::toMemberResponse).toList()
         );
     }
