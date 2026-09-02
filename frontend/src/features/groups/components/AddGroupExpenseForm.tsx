@@ -109,61 +109,61 @@ export default function AddGroupExpenseForm({ groupId, members, currentUserId, o
       {error && <p className="text-sm text-red-600">{error}</p>}
 
       <div>
-        <label className="block text-sm text-gray-700 mb-1">Receipt (optional)</label>
+        <label className="block text-sm text-gray-700 dark:text-gray-300 mb-1">Receipt (optional)</label>
         <div className="flex items-center gap-2">
           <input
             type="file"
             accept="image/*"
             onChange={onScanReceipt}
-            className="text-sm text-gray-600 file:mr-2 file:rounded-md file:border-0 file:bg-brand-50 file:text-brand-700 file:px-3 file:py-1.5 file:text-sm file:font-medium hover:file:bg-brand-100"
+            className="text-sm text-gray-600 dark:text-gray-300 file:mr-2 file:rounded-md file:border-0 file:bg-brand-50 dark:file:bg-brand-900/40 file:text-brand-700 dark:file:text-brand-100 file:px-3 file:py-1.5 file:text-sm file:font-medium hover:file:bg-brand-100 dark:hover:file:bg-brand-800/60"
           />
-          {scanning && <span className="text-xs text-gray-500">Scanning…</span>}
+          {scanning && <span className="text-xs text-gray-500 dark:text-gray-400">Scanning…</span>}
         </div>
-        {scanNote && <p className="text-xs text-gray-500 mt-1">{scanNote}</p>}
+        {scanNote && <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{scanNote}</p>}
       </div>
 
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="block text-sm text-gray-700 mb-1">Amount</label>
+          <label className="block text-sm text-gray-700 dark:text-gray-300 mb-1">Amount</label>
           <input
             type="number"
             step="0.01"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
             required
-            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+            className="w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
           />
         </div>
         <div>
-          <label className="block text-sm text-gray-700 mb-1">Date</label>
+          <label className="block text-sm text-gray-700 dark:text-gray-300 mb-1">Date</label>
           <input
             type="date"
             value={expenseDate}
             onChange={(e) => setExpenseDate(e.target.value)}
             max={todayIso()}
             required
-            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+            className="w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
           />
         </div>
       </div>
 
       <div>
-        <label className="block text-sm text-gray-700 mb-1">Description</label>
+        <label className="block text-sm text-gray-700 dark:text-gray-300 mb-1">Description</label>
         <input
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           maxLength={255}
           placeholder="e.g. Dinner at the beach shack"
-          className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+          className="w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
         />
       </div>
 
       <div>
-        <label className="block text-sm text-gray-700 mb-1">Paid by</label>
+        <label className="block text-sm text-gray-700 dark:text-gray-300 mb-1">Paid by</label>
         <select
           value={paidByUserId}
           onChange={(e) => setPaidByUserId(Number(e.target.value))}
-          className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+          className="w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
         >
           {members.map((m) => (
             <option key={m.userId} value={m.userId}>{m.fullName}</option>
@@ -172,7 +172,7 @@ export default function AddGroupExpenseForm({ groupId, members, currentUserId, o
       </div>
 
       <div>
-        <label className="block text-sm text-gray-700 mb-1">Split</label>
+        <label className="block text-sm text-gray-700 dark:text-gray-300 mb-1">Split</label>
         <div className="flex gap-2">
           {(['EQUAL', 'EXACT', 'PERCENTAGE'] as SplitType[]).map((t) => (
             <button
@@ -182,7 +182,7 @@ export default function AddGroupExpenseForm({ groupId, members, currentUserId, o
               className={`flex-1 rounded-md border px-3 py-1.5 text-sm font-medium transition ${
                 splitType === t
                   ? 'bg-brand-600 border-brand-600 text-white'
-                  : 'border-gray-300 text-gray-600 hover:bg-gray-50'
+                  : 'border-gray-300 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'
               }`}
             >
               {t === 'EQUAL' ? 'Equally' : t === 'EXACT' ? 'Exact amounts' : 'Percentages'}
@@ -192,7 +192,7 @@ export default function AddGroupExpenseForm({ groupId, members, currentUserId, o
       </div>
 
       <div>
-        <label className="block text-sm text-gray-700 mb-1">
+        <label className="block text-sm text-gray-700 dark:text-gray-300 mb-1">
           Split between {splitType !== 'EQUAL' && '(enter each person\'s ' + (splitType === 'EXACT' ? 'amount' : '%') + ')'}
         </label>
         <div className="space-y-1.5">
@@ -204,9 +204,9 @@ export default function AddGroupExpenseForm({ groupId, members, currentUserId, o
                   type="checkbox"
                   checked={checked}
                   onChange={() => toggleParticipant(m.userId)}
-                  className="rounded border-gray-300"
+                  className="rounded border-gray-300 dark:border-gray-600"
                 />
-                <span className="flex-1 text-sm text-gray-700">{m.fullName}</span>
+                <span className="flex-1 text-sm text-gray-700 dark:text-gray-300">{m.fullName}</span>
                 {checked && splitType !== 'EQUAL' && (
                   <input
                     type="number"
@@ -214,7 +214,7 @@ export default function AddGroupExpenseForm({ groupId, members, currentUserId, o
                     value={values[m.userId] || ''}
                     onChange={(e) => setValues((v) => ({ ...v, [m.userId]: e.target.value }))}
                     placeholder={splitType === 'EXACT' ? '₹' : '%'}
-                    className="w-24 rounded-md border border-gray-300 px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                    className="w-24 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                   />
                 )}
               </div>

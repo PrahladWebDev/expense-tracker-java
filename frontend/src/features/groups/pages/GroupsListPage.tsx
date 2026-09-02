@@ -29,29 +29,29 @@ export default function GroupsListPage() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
       <div className="md:col-span-1">
-        <div className="bg-white border border-gray-200 rounded-xl p-5">
-          <h2 className="font-semibold text-gray-900 mb-4">{t('groupsList.newGroup')}</h2>
+        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-5">
+          <h2 className="font-semibold text-gray-900 dark:text-gray-100 mb-4">{t('groupsList.newGroup')}</h2>
           {error && <p className="text-sm text-red-600 mb-3">{error}</p>}
           <form onSubmit={onSubmit} className="space-y-3">
             <div>
-              <label className="block text-sm text-gray-700 mb-1">{t('groupsList.groupName')}</label>
+              <label className="block text-sm text-gray-700 dark:text-gray-300 mb-1">{t('groupsList.groupName')}</label>
               <input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
                 maxLength={120}
                 placeholder={t('groupsList.groupNamePlaceholder')}
-                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                className="w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
               />
             </div>
             <div>
-              <label className="block text-sm text-gray-700 mb-1">{t('groupsList.descriptionOptional')}</label>
+              <label className="block text-sm text-gray-700 dark:text-gray-300 mb-1">{t('groupsList.descriptionOptional')}</label>
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 maxLength={500}
                 rows={3}
-                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                className="w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
               />
             </div>
             <button
@@ -73,17 +73,17 @@ export default function GroupsListPage() {
             <Link
               key={group.id}
               to={`/groups/${group.id}`}
-              className="block bg-white border border-gray-200 rounded-xl p-4 hover:border-brand-300 transition"
+              className="block bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-4 hover:border-brand-300 dark:hover:border-brand-500 transition"
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="font-medium text-gray-900">{group.name}</p>
-                  {group.description && <p className="text-xs text-gray-500 mt-0.5">{group.description}</p>}
+                  <p className="font-medium text-gray-900 dark:text-gray-100">{group.name}</p>
+                  {group.description && <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{group.description}</p>}
                 </div>
                 <div className="text-right">
-                  <p className="text-xs text-gray-500">{t('groupsList.membersCount', { count: group.members.length })}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">{t('groupsList.membersCount', { count: group.members.length })}</p>
                   {group.createdByUserId === user?.id && (
-                    <span className="text-xs text-brand-600 font-medium">{t('settlement.owner')}</span>
+                    <span className="text-xs text-brand-600 dark:text-brand-100 font-medium">{t('settlement.owner')}</span>
                   )}
                 </div>
               </div>

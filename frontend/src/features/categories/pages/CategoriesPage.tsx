@@ -48,29 +48,29 @@ export default function CategoriesPage() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
       <div className="md:col-span-1">
-        <div className="bg-white border border-gray-200 rounded-xl p-5">
-          <h2 className="font-semibold text-gray-900 mb-4">{editingId ? t('categories.editCategory') : t('categories.newCategory')}</h2>
+        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-5">
+          <h2 className="font-semibold text-gray-900 dark:text-gray-100 mb-4">{editingId ? t('categories.editCategory') : t('categories.newCategory')}</h2>
           {error && <p className="text-sm text-red-600 mb-3">{error}</p>}
           <form onSubmit={onSubmit} className="space-y-3">
             <div>
-              <label className="block text-sm text-gray-700 mb-1">{t('categories.name')}</label>
+              <label className="block text-sm text-gray-700 dark:text-gray-300 mb-1">{t('categories.name')}</label>
               <input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
                 maxLength={60}
-                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                className="w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                 placeholder={t('categories.namePlaceholder')}
               />
             </div>
             <div>
-              <label className="block text-sm text-gray-700 mb-1">{t('categories.color')}</label>
+              <label className="block text-sm text-gray-700 dark:text-gray-300 mb-1">{t('categories.color')}</label>
               <div className="flex items-center gap-2">
-                <input type="color" value={color} onChange={(e) => setColor(e.target.value)} className="h-9 w-12 rounded border border-gray-300" />
+                <input type="color" value={color} onChange={(e) => setColor(e.target.value)} className="h-9 w-12 rounded border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900" />
                 <input
                   value={color}
                   onChange={(e) => setColor(e.target.value)}
-                  className="flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                  className="flex-1 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                 />
               </div>
             </div>
@@ -82,7 +82,7 @@ export default function CategoriesPage() {
                 {editingId ? t('expenses.saveChanges') : t('categories.addCategory')}
               </button>
               {editingId && (
-                <button type="button" onClick={resetForm} className="px-3 text-sm text-gray-500 hover:text-gray-800">
+                <button type="button" onClick={resetForm} className="px-3 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-100">
                   {t('common.cancel')}
                 </button>
               )}
@@ -92,16 +92,16 @@ export default function CategoriesPage() {
       </div>
 
       <div className="md:col-span-2">
-        <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden">
           {isLoading ? (
             <p className="p-6 text-sm text-gray-500">{t('categories.loading')}</p>
           ) : categories && categories.length > 0 ? (
-            <ul className="divide-y divide-gray-100">
+            <ul className="divide-y divide-gray-100 dark:divide-gray-800">
               {categories.map((category) => (
                 <li key={category.id} className="flex items-center justify-between px-5 py-3">
                   <div className="flex items-center gap-3">
                     <span className="h-3 w-3 rounded-full" style={{ backgroundColor: category.color || '#ccc' }} />
-                    <span className="text-sm text-gray-800">{category.name}</span>
+                    <span className="text-sm text-gray-800 dark:text-gray-200">{category.name}</span>
                   </div>
                   <div className="flex gap-3">
                     <button onClick={() => startEdit(category)} className="text-sm text-brand-600 hover:underline">

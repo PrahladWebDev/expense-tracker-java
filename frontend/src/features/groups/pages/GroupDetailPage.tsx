@@ -57,7 +57,7 @@ export default function GroupDetailPage() {
   const [inviteCopied, setInviteCopied] = useState(false)
 
   if (isLoading || !group) {
-    return <p className="text-sm text-gray-500">Loading group…</p>
+    return <p className="text-sm text-gray-500 dark:text-gray-400">Loading group…</p>
   }
 
   const isOwner = group.createdByUserId === user?.id
@@ -156,27 +156,27 @@ export default function GroupDetailPage() {
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-xl font-semibold text-gray-900">{group.name}</h1>
+            <h1 className="text-xl font-semibold text-gray-900 dark:text-gray-100">{group.name}</h1>
             {isClosed && (
-              <span className="text-xs font-medium text-amber-700 bg-amber-100 rounded-full px-2 py-0.5">
+              <span className="text-xs font-medium text-amber-700 dark:text-amber-200 bg-amber-100 dark:bg-amber-900/40 rounded-full px-2 py-0.5">
                 Closed
               </span>
             )}
           </div>
-          {group.description && <p className="text-sm text-gray-500 mt-0.5">{group.description}</p>}
+          {group.description && <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">{group.description}</p>}
         </div>
         <div className="flex items-center gap-2">
           <button
             onClick={onDownloadGroupReport}
             disabled={downloadingReport}
-            className="text-sm rounded-md border border-gray-300 px-3 py-1.5 hover:bg-gray-50 disabled:opacity-60"
+            className="text-sm rounded-md border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-60"
           >
             {downloadingReport ? 'Preparing…' : '📄 Group PDF report'}
           </button>
           <button
             onClick={onDownloadCsv}
             disabled={downloadingCsv}
-            className="text-sm rounded-md border border-gray-300 px-3 py-1.5 hover:bg-gray-50 disabled:opacity-60"
+            className="text-sm rounded-md border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-60"
           >
             {downloadingCsv ? 'Preparing…' : '📊 Export CSV'}
           </button>
@@ -184,7 +184,7 @@ export default function GroupDetailPage() {
             <button
               onClick={onCloseGroup}
               disabled={closeGroup.isPending}
-              className="text-sm rounded-md border border-amber-300 text-amber-700 px-3 py-1.5 hover:bg-amber-50 disabled:opacity-60"
+              className="text-sm rounded-md border border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-300 px-3 py-1.5 hover:bg-amber-50 dark:hover:bg-amber-900/30 disabled:opacity-60"
             >
               {closeGroup.isPending ? 'Closing…' : 'Close group'}
             </button>
@@ -193,7 +193,7 @@ export default function GroupDetailPage() {
             <button
               onClick={onReopenGroup}
               disabled={reopenGroup.isPending}
-              className="text-sm rounded-md border border-brand-300 text-brand-700 px-3 py-1.5 hover:bg-brand-50 disabled:opacity-60"
+              className="text-sm rounded-md border border-brand-300 dark:border-brand-700 text-brand-700 dark:text-brand-100 px-3 py-1.5 hover:bg-brand-50 dark:hover:bg-brand-900/30 disabled:opacity-60"
             >
               {reopenGroup.isPending ? 'Reopening…' : 'Reopen group'}
             </button>
@@ -201,7 +201,7 @@ export default function GroupDetailPage() {
           {isOwner && (
             <button
               onClick={onDeleteGroup}
-              className="text-sm rounded-md border border-red-200 text-red-600 px-3 py-1.5 hover:bg-red-50"
+              className="text-sm rounded-md border border-red-200 dark:border-red-800 text-red-600 dark:text-red-300 px-3 py-1.5 hover:bg-red-50 dark:hover:bg-red-900/30"
             >
               Delete group
             </button>
@@ -210,7 +210,7 @@ export default function GroupDetailPage() {
       </div>
 
       {isClosed && (
-        <div className="bg-amber-50 border border-amber-200 text-amber-800 text-sm rounded-lg px-4 py-2">
+        <div className="bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-200 text-sm rounded-lg px-4 py-2">
           This group is closed. You can still view all expenses, balances and settlement history, but nothing new
           can be added until it's reopened.
         </div>
@@ -219,7 +219,7 @@ export default function GroupDetailPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Members + balances */}
         <div className="lg:col-span-1 space-y-6">
-          <div className="bg-white border border-gray-200 rounded-xl p-5">
+          <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-5">
             <CollapsibleSection title="Members">
             <ul className="space-y-2 mb-4">
               {group.members.map((m) => {
@@ -227,11 +227,11 @@ export default function GroupDetailPage() {
                 return (
                   <li key={m.userId} className="flex items-center justify-between text-sm">
                     <div>
-                      <p className="text-gray-900">
-                        {m.fullName} {m.role === 'OWNER' && <span className="text-xs text-brand-600">({t('settlement.owner')})</span>}
+                      <p className="text-gray-900 dark:text-gray-100">
+                        {m.fullName} {m.role === 'OWNER' && <span className="text-xs text-brand-600 dark:text-brand-100">({t('settlement.owner')})</span>}
                       </p>
                       {balance && (
-                        <p className={`text-xs ${balance.netBalance > 0 ? 'text-green-600' : balance.netBalance < 0 ? 'text-red-600' : 'text-gray-500'}`}>
+                        <p className={`text-xs ${balance.netBalance > 0 ? 'text-green-600 dark:text-green-400' : balance.netBalance < 0 ? 'text-red-600 dark:text-red-400' : 'text-gray-500 dark:text-gray-400'}`}>
                           {balance.netBalance > 0
                             ? t('settlement.isOwed', { amount: formatCurrency(balance.netBalance) })
                             : balance.netBalance < 0
@@ -244,14 +244,14 @@ export default function GroupDetailPage() {
                       <button
                         onClick={() => onDownloadStatement(m.userId)}
                         disabled={downloadingStatementFor === m.userId}
-                        className="text-xs text-brand-600 hover:underline disabled:opacity-60"
+                        className="text-xs text-brand-600 dark:text-brand-100 hover:underline disabled:opacity-60"
                       >
                         {downloadingStatementFor === m.userId ? '…' : t('settlement.statementPdf')}
                       </button>
                       {isOwner && m.role !== 'OWNER' && !isClosed && (
                         <button
                           onClick={() => removeMember.mutate(m.userId)}
-                          className="text-xs text-red-600 hover:underline"
+                          className="text-xs text-red-600 dark:text-red-400 hover:underline"
                         >
                           {t('settlement.remove')}
                         </button>
@@ -262,7 +262,7 @@ export default function GroupDetailPage() {
               })}
             </ul>
 
-            {memberError && <p className="text-sm text-red-600 mb-2">{memberError}</p>}
+            {memberError && <p className="text-sm text-red-600 dark:text-red-400 mb-2">{memberError}</p>}
             {!isClosed && (
               <form onSubmit={onAddMember} className="flex gap-2">
                 <input
@@ -271,7 +271,7 @@ export default function GroupDetailPage() {
                   onChange={(e) => setMemberEmail(e.target.value)}
                   placeholder="Add member by email"
                   required
-                  className="flex-1 rounded-md border border-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                  className="flex-1 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                 />
                 <button
                   type="submit"
@@ -288,9 +288,9 @@ export default function GroupDetailPage() {
           {!isClosed && <SettleUpPanel groupId={groupId} members={group.members} />}
 
           {isOwner && (
-            <div className="bg-white border border-gray-200 rounded-xl p-5">
-              <h2 className="font-semibold text-gray-900 mb-2">Invite link</h2>
-              <p className="text-xs text-gray-500 mb-3">
+            <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-5">
+              <h2 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">Invite link</h2>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
                 Share this link so a friend can join the group directly, even if they're not in anyone's contacts.
               </p>
               <div className="flex gap-2">
@@ -298,11 +298,11 @@ export default function GroupDetailPage() {
                   readOnly
                   value={inviteLink()}
                   onFocus={(e) => e.target.select()}
-                  className="flex-1 rounded-md border border-gray-300 px-2 py-1.5 text-xs text-gray-600 bg-gray-50"
+                  className="flex-1 rounded-md border border-gray-300 dark:border-gray-700 px-2 py-1.5 text-xs text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-800"
                 />
                 <button
                   onClick={onCopyInviteLink}
-                  className="text-xs rounded-md border border-gray-300 px-2.5 py-1.5 hover:bg-gray-50 shrink-0"
+                  className="text-xs rounded-md border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 px-2.5 py-1.5 hover:bg-gray-50 dark:hover:bg-gray-800 shrink-0"
                 >
                   {inviteCopied ? 'Copied!' : 'Copy'}
                 </button>
@@ -311,7 +311,7 @@ export default function GroupDetailPage() {
                 <button
                   onClick={onRegenerateInviteLink}
                   disabled={regenerateInviteCode.isPending}
-                  className="mt-2 text-xs text-red-600 hover:underline disabled:opacity-60"
+                  className="mt-2 text-xs text-red-600 dark:text-red-400 hover:underline disabled:opacity-60"
                 >
                   Regenerate link (invalidates the old one)
                 </button>
@@ -319,27 +319,27 @@ export default function GroupDetailPage() {
             </div>
           )}
 
-          <div className="bg-white border border-gray-200 rounded-xl p-5">
+          <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-5">
             <CollapsibleSection title="Activity">
               <ActivityFeed groupId={groupId} />
             </CollapsibleSection>
           </div>
 
-          <div className="bg-white border border-gray-200 rounded-xl p-5">
+          <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-5">
             <CollapsibleSection title="Settlement history">
               {settlements && settlements.length > 0 ? (
                 <ul className="space-y-2">
                   {settlements.map((s) => (
-                    <li key={s.id} className="text-sm text-gray-700">
+                    <li key={s.id} className="text-sm text-gray-700 dark:text-gray-300">
                       <span className="font-medium">{s.fromName}</span> paid <span className="font-medium">{s.toName}</span>{' '}
                       {formatCurrency(s.amount)}
-                      {s.note && <span className="text-gray-400"> — {s.note}</span>}
-                      <p className="text-xs text-gray-400">{new Date(s.settledAt).toLocaleString()}</p>
+                      {s.note && <span className="text-gray-400 dark:text-gray-500"> — {s.note}</span>}
+                      <p className="text-xs text-gray-400 dark:text-gray-500">{new Date(s.settledAt).toLocaleString()}</p>
                     </li>
                   ))}
                 </ul>
               ) : (
-                <p className="text-sm text-gray-500">No settlements recorded yet.</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">No settlements recorded yet.</p>
               )}
             </CollapsibleSection>
           </div>
@@ -347,9 +347,9 @@ export default function GroupDetailPage() {
 
         {/* Expenses */}
         <div className="lg:col-span-2 space-y-4">
-          <div className="bg-white border border-gray-200 rounded-xl p-5">
+          <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-5">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="font-semibold text-gray-900">Group expenses</h2>
+              <h2 className="font-semibold text-gray-900 dark:text-gray-100">Group expenses</h2>
               {!isClosed && (
                 <button
                   onClick={() => setShowAddExpense((o) => !o)}
@@ -361,7 +361,7 @@ export default function GroupDetailPage() {
             </div>
 
             {showAddExpense && !isClosed && (
-              <div className="mb-5 border border-gray-200 rounded-lg p-4">
+              <div className="mb-5 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
                 <AddGroupExpenseForm
                   groupId={groupId}
                   members={group.members}
@@ -377,13 +377,13 @@ export default function GroupDetailPage() {
                   <li
                     key={e.id}
                     className={`border rounded-lg p-3 ${
-                      e.deleted ? 'border-gray-100 bg-gray-50' : 'border-gray-100'
+                      e.deleted ? 'border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/60' : 'border-gray-100 dark:border-gray-800'
                     }`}
                   >
                     <div className="flex items-start justify-between">
                       <div className={e.deleted ? 'line-through decoration-red-400 opacity-60' : undefined}>
-                        <p className="font-medium text-gray-900">{e.description || 'Group expense'}</p>
-                        <p className="text-xs text-gray-500">
+                        <p className="font-medium text-gray-900 dark:text-gray-100">{e.description || 'Group expense'}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
                           {e.expenseDate} · paid by {e.paidByName} · {e.splitType.toLowerCase()} split
                           {e.hasReceipt && ' · 📎 receipt'}
                         </p>
@@ -391,7 +391,7 @@ export default function GroupDetailPage() {
                       <div className="text-right">
                         <p
                           className={`font-semibold ${
-                            e.deleted ? 'text-gray-400 line-through decoration-red-400' : 'text-gray-900'
+                            e.deleted ? 'text-gray-400 dark:text-gray-500 line-through decoration-red-400' : 'text-gray-900 dark:text-gray-100'
                           }`}
                         >
                           {formatCurrency(e.amount)}
@@ -399,7 +399,7 @@ export default function GroupDetailPage() {
                         {!isClosed && !e.deleted && (
                           <button
                             onClick={() => removeExpense.mutate(e.id)}
-                            className="text-xs text-red-600 hover:underline"
+                            className="text-xs text-red-600 dark:text-red-400 hover:underline"
                           >
                             Delete
                           </button>
@@ -407,18 +407,18 @@ export default function GroupDetailPage() {
                       </div>
                     </div>
                     {e.deleted ? (
-                      <p className="text-xs text-red-500 mt-2">
+                      <p className="text-xs text-red-500 dark:text-red-400 mt-2">
                         Deleted by {e.deletedByName ?? 'a member'} · excluded from totals and balances
                       </p>
                     ) : (
-                      <p className="text-xs text-gray-400 mt-2">
+                      <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">
                         {e.shares.map((s) => `${s.fullName}: ${formatCurrency(s.shareAmount)}`).join(' · ')}
                       </p>
                     )}
                     {!e.deleted && (
                       <button
                         onClick={() => setExpandedExpenseId((cur) => (cur === e.id ? null : e.id))}
-                        className="text-xs text-brand-600 hover:underline mt-2"
+                        className="text-xs text-brand-600 dark:text-brand-100 hover:underline mt-2"
                       >
                         {expandedExpenseId === e.id ? 'Hide notes' : 'Notes & receipt'}
                       </button>
@@ -435,7 +435,7 @@ export default function GroupDetailPage() {
                 ))}
               </ul>
             ) : (
-              <p className="text-sm text-gray-500">No group expenses yet.</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">No group expenses yet.</p>
             )}
           </div>
         </div>

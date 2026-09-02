@@ -22,10 +22,10 @@ const ICONS: Record<string, string> = {
 export default function ActivityFeed({ groupId }: Props) {
   const { data: activity, isLoading } = useGroupActivity(groupId)
 
-  if (isLoading) return <p className="text-sm text-gray-400">Loading activity…</p>
+  if (isLoading) return <p className="text-sm text-gray-400 dark:text-gray-500">Loading activity…</p>
 
   if (!activity || activity.length === 0) {
-    return <p className="text-sm text-gray-400">No activity yet.</p>
+    return <p className="text-sm text-gray-400 dark:text-gray-500">No activity yet.</p>
   }
 
   return (
@@ -34,8 +34,8 @@ export default function ActivityFeed({ groupId }: Props) {
         <li key={a.id} className="flex items-start gap-2 text-sm">
           <span>{ICONS[a.type] || '•'}</span>
           <div>
-            <p className="text-gray-700">{a.message}</p>
-            <p className="text-xs text-gray-400">{formatDateTime(a.createdAt)}</p>
+            <p className="text-gray-700 dark:text-gray-300">{a.message}</p>
+            <p className="text-xs text-gray-400 dark:text-gray-500">{formatDateTime(a.createdAt)}</p>
           </div>
         </li>
       ))}

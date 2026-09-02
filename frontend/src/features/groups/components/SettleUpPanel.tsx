@@ -65,24 +65,24 @@ export default function SettleUpPanel({ groupId, members }: Props) {
       {error && <p className="text-sm text-red-600 mb-3">{error}</p>}
 
       {manualOpen && (
-        <form onSubmit={onManualSubmit} className="space-y-2 mb-4 border border-gray-200 rounded-lg p-3">
+        <form onSubmit={onManualSubmit} className="space-y-2 mb-4 border border-gray-200 dark:border-gray-700 rounded-lg p-3">
           <div className="grid grid-cols-2 gap-2">
             <div>
-              <label className="block text-xs text-gray-600 mb-1">From</label>
+              <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">From</label>
               <select
                 value={fromUserId}
                 onChange={(e) => setFromUserId(Number(e.target.value))}
-                className="w-full rounded-md border border-gray-300 px-2 py-1.5 text-sm"
+                className="w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 px-2 py-1.5 text-sm"
               >
                 {members.map((m) => <option key={m.userId} value={m.userId}>{m.fullName}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-xs text-gray-600 mb-1">To</label>
+              <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">To</label>
               <select
                 value={toUserId}
                 onChange={(e) => setToUserId(Number(e.target.value))}
-                className="w-full rounded-md border border-gray-300 px-2 py-1.5 text-sm"
+                className="w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 px-2 py-1.5 text-sm"
               >
                 {members.map((m) => <option key={m.userId} value={m.userId}>{m.fullName}</option>)}
               </select>
@@ -95,13 +95,13 @@ export default function SettleUpPanel({ groupId, members }: Props) {
             onChange={(e) => setAmount(e.target.value)}
             placeholder="Amount"
             required
-            className="w-full rounded-md border border-gray-300 px-2 py-1.5 text-sm"
+            className="w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 px-2 py-1.5 text-sm"
           />
           <input
             value={note}
             onChange={(e) => setNote(e.target.value)}
             placeholder="Note (optional, e.g. 'Paid via UPI')"
-            className="w-full rounded-md border border-gray-300 px-2 py-1.5 text-sm"
+            className="w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 px-2 py-1.5 text-sm"
           />
           <button
             type="submit"
@@ -118,12 +118,12 @@ export default function SettleUpPanel({ groupId, members }: Props) {
       ) : suggestions && suggestions.length > 0 ? (
         <ul className="space-y-2">
           {suggestions.map((s, idx) => (
-            <li key={idx} className="flex items-center justify-between text-sm bg-gray-50 rounded-lg px-3 py-2">
-              <span className="text-gray-700">
+            <li key={idx} className="flex items-center justify-between text-sm bg-gray-50 dark:bg-gray-800 rounded-lg px-3 py-2">
+              <span className="text-gray-700 dark:text-gray-300">
                 <span className="font-medium">{s.fromName}</span> {t('settlement.pays')} <span className="font-medium">{s.toName}</span>
               </span>
               <div className="flex items-center gap-2">
-                <span className="font-semibold text-gray-900">{formatCurrency(s.amount)}</span>
+                <span className="font-semibold text-gray-900 dark:text-gray-100">{formatCurrency(s.amount)}</span>
                 <button
                   onClick={() => recordSuggestion(s.fromUserId, s.toUserId, s.amount)}
                   disabled={recordSettlement.isPending}
