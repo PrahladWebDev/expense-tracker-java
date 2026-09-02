@@ -37,9 +37,9 @@
   },
   "dashboard": {
     "title": "Dashboard",
-    "totalAllTime": "Total spending (all time)",
-    "thisMonth": "This month",
-    "lastMonth": "Last month",
+    "personalAllTime": "Personal spending (all time)",
+    "personalThisMonth": "Personal spending (this month)",
+    "personalLastMonth": "Personal spending (last month)",
     "vsLastMonth": "{{percent}} vs last month",
     "groupShareAllTime": "Your share of group expenses (all time)",
     "groupShareThisMonth": "Your share of group expenses (this month)",

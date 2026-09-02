@@ -28,4 +28,19 @@ public interface GroupExpenseShareRepository extends JpaRepository<GroupExpenseS
             @org.springframework.data.repository.query.Param("userId") Long userId,
             @org.springframework.data.repository.query.Param("start") java.time.LocalDate start,
             @org.springframework.data.repository.query.Param("end") java.time.LocalDate end);
+
+    /**
+     * Same share-amount concept as above, but grouped by month so the
+     * dashboard's monthly chart can be built from personal + group share
+     * together instead of personal spending alone.
+     */
+    @org.springframework.data.jpa.repository.Query(
+        "SELECT FUNCTION('DATE_FORMAT', s.groupExpense.expenseDate, '%Y-%m') as ym, COALESCE(SUM(s.shareAmount), 0) " +
+        "FROM GroupExpenseShare s WHERE s.user.id = :userId AND s.groupExpense.expenseDate BETWEEN :start AND :end " +
+        "GROUP BY ym ORDER BY ym"
+    )
+    List<Object[]> sumShareAmountByMonthForUserInRange(
+            @org.springframework.data.repository.query.Param("userId") Long userId,
+            @org.springframework.data.repository.query.Param("start") java.time.LocalDate start,
+            @org.springframework.data.repository.query.Param("end") java.time.LocalDate end);
 }

@@ -28,13 +28,13 @@ export default function DashboardPage() {
       <h1 className="text-xl font-semibold text-gray-900">{t('dashboard.title')}</h1>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <StatCard label={t('dashboard.totalAllTime')} value={summary ? formatCurrency(summary.totalAllTime) : '…'} />
+        <StatCard label={t('dashboard.personalAllTime')} value={summary ? formatCurrency(summary.totalAllTime) : '…'} />
         <StatCard
-          label={t('dashboard.thisMonth')}
+          label={t('dashboard.personalThisMonth')}
           value={summary ? formatCurrency(summary.currentMonth) : '…'}
           sub={changeLabel}
         />
-        <StatCard label={t('dashboard.lastMonth')} value={summary ? formatCurrency(summary.previousMonth) : '…'} />
+        <StatCard label={t('dashboard.personalLastMonth')} value={summary ? formatCurrency(summary.previousMonth) : '…'} />
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

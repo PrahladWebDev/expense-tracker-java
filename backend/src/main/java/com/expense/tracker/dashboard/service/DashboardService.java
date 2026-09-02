@@ -72,14 +72,36 @@ public class DashboardService {
         );
     }
 
+    /**
+     * The monthly chart shows COMBINED spending (personal + group share) per
+     * month, matching the "Combined spending" figure on the summary cards -
+     * not just personal Expense rows on their own, which used to make the
+     * chart disagree with the cards whenever a month's spending was mostly
+     * or entirely group expenses.
+     */
     public List<MonthlySpendingResponse> getMonthly(String userEmail, int monthsBack) {
         User user = getUser(userEmail);
-        LocalDate start = YearMonth.now().minusMonths(monthsBack - 1L).atDay(1);
-        LocalDate end = YearMonth.now().atEndOfMonth();
+        YearMonth startMonth = YearMonth.now().minusMonths(monthsBack - 1L);
+        YearMonth endMonth = YearMonth.now();
+        LocalDate start = startMonth.atDay(1);
+        LocalDate end = endMonth.atEndOfMonth();
 
-        return expenseRepository.sumByMonthForUserInRange(user.getId(), start, end).stream()
-                .map(row -> new MonthlySpendingResponse((String) row[0], (BigDecimal) row[1]))
-                .toList();
+        java.util.Map<String, BigDecimal> personalByMonth = expenseRepository
+                .sumByMonthForUserInRange(user.getId(), start, end).stream()
+                .collect(java.util.stream.Collectors.toMap(row -> (String) row[0], row -> (BigDecimal) row[1]));
+
+        java.util.Map<String, BigDecimal> groupByMonth = groupExpenseShareRepository
+                .sumShareAmountByMonthForUserInRange(user.getId(), start, end).stream()
+                .collect(java.util.stream.Collectors.toMap(row -> (String) row[0], row -> (BigDecimal) row[1]));
+
+        List<MonthlySpendingResponse> result = new java.util.ArrayList<>();
+        for (YearMonth cursor = startMonth; !cursor.isAfter(endMonth); cursor = cursor.plusMonths(1)) {
+            String key = cursor.toString(); // e.g. "2026-09", matches the %Y-%m DATE_FORMAT above
+            BigDecimal personal = personalByMonth.getOrDefault(key, BigDecimal.ZERO);
+            BigDecimal group = groupByMonth.getOrDefault(key, BigDecimal.ZERO);
+            result.add(new MonthlySpendingResponse(key, personal.add(group)));
+        }
+        return result;
     }
 
     public List<CategorySpendingResponse> getCategoryBreakdown(String userEmail, LocalDate from, LocalDate to) {

@@ -37,9 +37,9 @@
   },
   "dashboard": {
     "title": "डैशबोर्ड",
-    "totalAllTime": "कुल खर्चा (अब तक)",
-    "thisMonth": "इस महीने",
-    "lastMonth": "पिछले महीने",
+    "personalAllTime": "कुल व्यक्तिगत खर्च",
+    "personalThisMonth": "इस महीने का व्यक्तिगत खर्च",
+    "personalLastMonth": "पिछले महीने का व्यक्तिगत खर्च",
     "vsLastMonth": "पिछले महीने से {{percent}}",
     "groupShareAllTime": "ग्रुप खर्चों में आपका हिस्सा (अब तक)",
     "groupShareThisMonth": "ग्रुप खर्चों में आपका हिस्सा (इस महीने)",
