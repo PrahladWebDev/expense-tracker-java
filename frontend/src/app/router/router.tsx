@@ -24,9 +24,9 @@ import JoinGroupPage from '@/features/groups/pages/JoinGroupPage'
 // into its <Outlet />.
 //
 // AuthProvider must wrap the ENTIRE route tree (including ProtectedRoute,
-// which calls useAuth() to decide whether to redirect to /login), so it's
-// the element on our top-level route, with <Outlet /> rendering whichever
-// child route actually matched the URL. ThemeProvider sits alongside it
+// which calls useAuth() to decide whether to redirect to the landing page),
+// so it's the element on our top-level route, with <Outlet /> rendering
+// whichever child route actually matched the URL. ThemeProvider sits alongside it
 // for the same reason: both the logged-out LandingPage and the logged-in
 // Layout need the dark-mode toggle.
 function RootLayout() {

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { NavLink, Outlet, Link } from 'react-router-dom'
+import { NavLink, Outlet, Link, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/app/providers/AuthProvider'
 import { useTheme, ACCENT_OPTIONS } from '@/app/providers/ThemeProvider'
@@ -26,6 +26,11 @@ export default function Layout() {
   const { t, i18n } = useTranslation()
   const navItems = useNavItems()
   const [menuOpen, setMenuOpen] = useState(false)
+  const location = useLocation()
+  // The groups pages have their own "Add expense" / "Add member" flows in
+  // context, and this generic FAB always links to the personal expense
+  // form - showing it on top of a group screen is confusing, not useful.
+  const isGroupsSection = location.pathname.startsWith('/groups')
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100">
@@ -170,13 +175,15 @@ export default function Layout() {
       </nav>
 
       {/* Mobile quick-add floating action button */}
-      <Link
-        to="/expenses/new"
-        aria-label="Add expense"
-        className="md:hidden fixed right-4 bottom-20 z-20 w-14 h-14 rounded-full bg-brand-600 hover:bg-brand-700 text-white text-2xl font-light grid place-items-center shadow-lg"
-      >
-        +
-      </Link>
+      {!isGroupsSection && (
+        <Link
+          to="/expenses/new"
+          aria-label="Add expense"
+          className="md:hidden fixed right-4 bottom-20 z-20 w-14 h-14 rounded-full bg-brand-600 hover:bg-brand-700 text-white text-2xl font-light grid place-items-center shadow-lg"
+        >
+          +
+        </Link>
+      )}
     </div>
   )
 }

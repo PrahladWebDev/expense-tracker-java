@@ -8,6 +8,7 @@ import AddGroupExpenseForm from '../components/AddGroupExpenseForm'
 import SettleUpPanel from '../components/SettleUpPanel'
 import ActivityFeed from '../components/ActivityFeed'
 import ExpenseComments from '../components/ExpenseComments'
+import CollapsibleSection from '@/components/CollapsibleSection'
 import {
   useAddMember,
   useCloseGroup,
@@ -219,7 +220,7 @@ export default function GroupDetailPage() {
         {/* Members + balances */}
         <div className="lg:col-span-1 space-y-6">
           <div className="bg-white border border-gray-200 rounded-xl p-5">
-            <h2 className="font-semibold text-gray-900 mb-3">Members</h2>
+            <CollapsibleSection title="Members">
             <ul className="space-y-2 mb-4">
               {group.members.map((m) => {
                 const balance = balanceByUserId.get(m.userId)
@@ -281,6 +282,7 @@ export default function GroupDetailPage() {
                 </button>
               </form>
             )}
+            </CollapsibleSection>
           </div>
 
           {!isClosed && <SettleUpPanel groupId={groupId} members={group.members} />}
@@ -318,26 +320,28 @@ export default function GroupDetailPage() {
           )}
 
           <div className="bg-white border border-gray-200 rounded-xl p-5">
-            <h2 className="font-semibold text-gray-900 mb-3">Activity</h2>
-            <ActivityFeed groupId={groupId} />
+            <CollapsibleSection title="Activity">
+              <ActivityFeed groupId={groupId} />
+            </CollapsibleSection>
           </div>
 
           <div className="bg-white border border-gray-200 rounded-xl p-5">
-            <h2 className="font-semibold text-gray-900 mb-3">Settlement history</h2>
-            {settlements && settlements.length > 0 ? (
-              <ul className="space-y-2">
-                {settlements.map((s) => (
-                  <li key={s.id} className="text-sm text-gray-700">
-                    <span className="font-medium">{s.fromName}</span> paid <span className="font-medium">{s.toName}</span>{' '}
-                    {formatCurrency(s.amount)}
-                    {s.note && <span className="text-gray-400"> — {s.note}</span>}
-                    <p className="text-xs text-gray-400">{new Date(s.settledAt).toLocaleString()}</p>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-sm text-gray-500">No settlements recorded yet.</p>
-            )}
+            <CollapsibleSection title="Settlement history">
+              {settlements && settlements.length > 0 ? (
+                <ul className="space-y-2">
+                  {settlements.map((s) => (
+                    <li key={s.id} className="text-sm text-gray-700">
+                      <span className="font-medium">{s.fromName}</span> paid <span className="font-medium">{s.toName}</span>{' '}
+                      {formatCurrency(s.amount)}
+                      {s.note && <span className="text-gray-400"> — {s.note}</span>}
+                      <p className="text-xs text-gray-400">{new Date(s.settledAt).toLocaleString()}</p>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-sm text-gray-500">No settlements recorded yet.</p>
+              )}
+            </CollapsibleSection>
           </div>
         </div>
 
