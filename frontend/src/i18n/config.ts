@@ -39,7 +39,7 @@ i18n.use(initReactI18next).init({
   },
 });
 
-i18n.on('languageChanged', (lng) => {
+i18n.on('languageChanged', (lng: string) => {
   localStorage.setItem(LANGUAGE_STORAGE_KEY, lng)
 })
 

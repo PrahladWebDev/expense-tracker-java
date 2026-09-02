@@ -108,7 +108,7 @@ export default function GroupDetailPage() {
   }
 
   function inviteLink() {
-    return `${window.location.origin}/groups/join/${group.inviteCode}`
+    return `${window.location.origin}/groups/join/${group?.inviteCode ?? ''}`
   }
 
   async function onCopyInviteLink() {
