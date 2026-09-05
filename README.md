@@ -4,14 +4,32 @@ A full-stack expense tracker: Spring Boot 3 / Java 21 / MySQL backend, React 19 
 
 ## Features
 
+**Personal expenses**
 - Register / login / logout with JWT access + refresh tokens (refresh token rotation, BCrypt password hashing)
-- Basic rate limiting on `/api/v1/auth/**` (10 requests/minute per IP) to slow down credential brute-forcing
-- A scheduled job that purges expired/revoked refresh tokens daily, so that table doesn't grow unbounded
 - Expenses: create, edit, delete, search, filter (category / date range / amount range), sort, paginate
 - Categories: full CRUD, scoped per-user
 - Budgets: monthly, overall or per-category, with live spend-vs-budget tracking
 - Dashboard: total spend, month-over-month comparison, monthly bar chart, category breakdown pie chart, budget usage bars
+- Export expenses to CSV
+- Scan a receipt photo (OCR) to auto-suggest the amount, category, and description on the expense form
 - Profile page: view account details, update full name
+
+**Shared/group expenses (Splitwise-style)**
+- Create groups, invite people via a shareable invite code/link, and manage members (add/remove, owner vs member roles)
+- Add group expenses with equal, exact-amount, or percentage splits
+- Per-member balances (who owes / is owed) with server-computed "settle up" suggestions that minimize the number of payments
+- Record settlements (suggested or manual) between members
+- Attach a receipt photo to a group expense (upload/download)
+- Comments on individual group expenses
+- Activity feed per group (who did what, when)
+- Close/reopen a group
+- Download a group report or an individual member statement as PDF, plus a CSV export of a group's expenses
+
+**Platform**
+- Multi-language UI (English and Hindi) via i18next
+- Light/dark theme toggle
+- Basic rate limiting on `/api/v1/auth/**` (10 requests/minute per IP) to slow down credential brute-forcing
+- A scheduled job that purges expired/revoked refresh tokens daily, so that table doesn't grow unbounded
 - An admin-only endpoint (`GET /api/v1/admin/users`) that actually exercises role-based authorization — a `USER`-role JWT gets a 403 here, not just a UI that hides a button
 - Every user can only ever see/modify their own data (enforced at the repository query level, not just the UI)
 - A handful of backend unit tests (Mockito, no Spring context) and a frontend unit test suite (Vitest) covering the formatting utilities
@@ -20,7 +38,7 @@ A full-stack expense tracker: Spring Boot 3 / Java 21 / MySQL backend, React 19 
 
 **Backend:** Java 21, Spring Boot 3.3, Spring Web, Spring Security, Spring Data JPA / Hibernate, JJWT, Bean Validation, Lombok, MySQL 8
 
-**Frontend:** React 19, TypeScript, Vite, React Router, TanStack Query, Axios, React Hook Form + Zod, Tailwind CSS, Recharts
+**Frontend:** React 19, TypeScript, Vite, React Router, TanStack Query, Axios, React Hook Form + Zod, Tailwind CSS, Recharts, react-i18next (English/Hindi)
 
 ## Project structure
 
@@ -114,6 +132,37 @@ GET    /api/v1/users/me
 PUT    /api/v1/users/me
 
 GET    /api/v1/admin/users        (requires Role.ADMIN — see note below)
+
+POST   /api/v1/ocr/receipt        (scan a receipt image, returns suggested amount/category/description)
+
+GET    /api/v1/groups
+POST   /api/v1/groups
+GET    /api/v1/groups/{id}
+DELETE /api/v1/groups/{id}
+POST   /api/v1/groups/{id}/close
+POST   /api/v1/groups/{id}/reopen
+POST   /api/v1/groups/{id}/members
+DELETE /api/v1/groups/{id}/members/{memberUserId}
+POST   /api/v1/groups/{id}/invite-code/regenerate
+POST   /api/v1/groups/join/{inviteCode}
+GET    /api/v1/groups/{id}/balances
+GET    /api/v1/groups/{id}/activity
+GET    /api/v1/groups/{id}/report/pdf
+GET    /api/v1/groups/{id}/report/csv
+GET    /api/v1/groups/{id}/members/{memberUserId}/statement/pdf
+
+GET    /api/v1/groups/{id}/expenses
+POST   /api/v1/groups/{id}/expenses           (splitType: EQUAL | EXACT | PERCENTAGE)
+DELETE /api/v1/groups/{id}/expenses/{expenseId}
+POST   /api/v1/groups/{id}/expenses/{expenseId}/receipt
+GET    /api/v1/groups/{id}/expenses/{expenseId}/receipt
+GET    /api/v1/groups/{id}/expenses/{expenseId}/comments
+POST   /api/v1/groups/{id}/expenses/{expenseId}/comments
+DELETE /api/v1/groups/{id}/expenses/{expenseId}/comments/{commentId}
+
+GET    /api/v1/groups/{id}/settlements
+GET    /api/v1/groups/{id}/settlements/suggestions   (server-computed debt-simplification)
+POST   /api/v1/groups/{id}/settlements
 ```
 
 Every response is wrapped as `{ success, message, data, timestamp }`.
