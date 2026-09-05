@@ -23,14 +23,44 @@ const features = [
     body: 'Search, filter by date range or category, and sort in a click.',
   },
   {
+    icon: '🧾',
+    title: 'Scan a receipt',
+    body: 'Snap a photo and let OCR pre-fill the amount, category, and description for you.',
+  },
+  {
+    icon: '👥',
+    title: 'Split with a group',
+    body: 'Create a group, invite friends with a link, and split expenses equally, by exact amount, or by percentage.',
+  },
+  {
+    icon: '🤝',
+    title: 'Settle up in one tap',
+    body: 'We work out the minimum set of payments to clear every balance, then track who has actually paid.',
+  },
+  {
+    icon: '💬',
+    title: 'Comments & activity feed',
+    body: 'Discuss a group expense and see a running log of everything that happens in the group.',
+  },
+  {
+    icon: '📄',
+    title: 'PDF & CSV reports',
+    body: 'Download a full group report or a single member statement as a PDF, or export to CSV.',
+  },
+  {
+    icon: '🌐',
+    title: 'Multi-language',
+    body: 'Use the app in English or Hindi, with a light/dark theme to match your taste.',
+  },
+  {
     icon: '📤',
     title: 'Export anytime',
-    body: 'Download your expenses as CSV whenever you need them elsewhere.',
+    body: 'Download your personal expenses as CSV whenever you need them elsewhere.',
   },
   {
     icon: '🔒',
     title: 'Your data, secured',
-    body: 'Token-based auth keeps your account and numbers private.',
+    body: 'Token-based auth keeps your account and numbers private — group data is visible only to group members.',
   },
 ]
 
@@ -85,7 +115,7 @@ export default function LandingPage() {
         </h1>
         <p className="mt-4 sm:mt-5 text-base sm:text-lg text-gray-500 dark:text-gray-400 max-w-xl mx-auto">
           Log expenses in seconds, set budgets per category, and watch clear dashboards do the
-          math for you — on your phone or your desktop.
+          math for you — or split a trip or bill with friends and settle up with one tap.
         </p>
         <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
           <Link
